@@ -9,7 +9,7 @@
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
-
+//#pragma commit(linker, "/subsystem:windows /entry:mainCRTStartup")
 
 // 唯一的应用程序对象
 
