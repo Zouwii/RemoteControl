@@ -1,0 +1,10 @@
+﻿  pch.cpp
+  RemoteContorl.cpp
+E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ServerSocket.h(19,25): warning C4101: “client_adr”: 未引用的局部变量
+E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ServerSocket.h(40,8): warning C4101: “buffer”: 未引用的局部变量
+E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\RemoteContorl.cpp(59,44): warning C4390: “;”: 找到空的受控语句；这是否是有意的?
+  ServerSocket.cpp
+E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ServerSocket.h(19,25): warning C4101: “client_adr”: 未引用的局部变量
+E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ServerSocket.h(40,8): warning C4101: “buffer”: 未引用的局部变量
+  正在生成代码...
+  RemoteContorl.vcxproj -> E:\QGitProject\git-demo-1\RemoteContorl\Debug\RemoteContorl.exe
