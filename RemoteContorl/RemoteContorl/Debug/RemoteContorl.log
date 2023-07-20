@@ -1,14 +1,12 @@
-﻿  pch.cpp
-  RemoteContorl.cpp
-E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ServerSocket.h(37,10): warning C4244: “=”: 从“DWORD”转换到“WORD”，可能丢失数据
-E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ServerSocket.h(44,10): warning C4244: “=”: 从“DWORD”转换到“WORD”，可能丢失数据
-E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ServerSocket.h(90,25): warning C4101: “client_adr”: 未引用的局部变量
-E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ServerSocket.h(111,8): warning C4101: “buffer”: 未引用的局部变量
-E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\RemoteContorl.cpp(59,44): warning C4390: “;”: 找到空的受控语句；这是否是有意的?
+﻿  RemoteContorl.cpp
+E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ServerSocket.h(52,10): warning C4244: “=”: 从“DWORD”转换到“WORD”，可能丢失数据
+E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ServerSocket.h(59,10): warning C4244: “=”: 从“DWORD”转换到“WORD”，可能丢失数据
+E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ServerSocket.h(124,25): warning C4101: “client_adr”: 未引用的局部变量
+E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ServerSocket.h(145,8): warning C4101: “buffer”: 未引用的局部变量
   ServerSocket.cpp
-E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ServerSocket.h(37,10): warning C4244: “=”: 从“DWORD”转换到“WORD”，可能丢失数据
-E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ServerSocket.h(44,10): warning C4244: “=”: 从“DWORD”转换到“WORD”，可能丢失数据
-E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ServerSocket.h(90,25): warning C4101: “client_adr”: 未引用的局部变量
-E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ServerSocket.h(111,8): warning C4101: “buffer”: 未引用的局部变量
+E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ServerSocket.h(52,10): warning C4244: “=”: 从“DWORD”转换到“WORD”，可能丢失数据
+E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ServerSocket.h(59,10): warning C4244: “=”: 从“DWORD”转换到“WORD”，可能丢失数据
+E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ServerSocket.h(124,25): warning C4101: “client_adr”: 未引用的局部变量
+E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ServerSocket.h(145,8): warning C4101: “buffer”: 未引用的局部变量
   正在生成代码...
   RemoteContorl.vcxproj -> E:\QGitProject\git-demo-1\RemoteContorl\Debug\RemoteContorl.exe
