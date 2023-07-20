@@ -170,7 +170,7 @@ public:
 			if (len > 0) {
 				memmove(buffer, buffer + len, BUFFER_SIZE - len); //移到头部
 				index -= len;
-				return m_packet.sCmd;
+				return m_packet.sCmd;     //最后返回的是cmd
 			}
 		}
 		return -1;
@@ -186,6 +186,14 @@ public:
 		if (m_client == -1) return false;
 		return send(m_client, pack.Data(), pack.Size(), 0) > 0;
 	}
+	bool GetFilePath(std::string& strPath) {   //包信息应该就是路径
+		if (m_packet.sCmd == 2) {
+			strPath = m_packet.strData;
+			return true;
+		}
+		return false;
+	}
+
 private:
 	SOCKET m_client;
 	SOCKET m_sock;
