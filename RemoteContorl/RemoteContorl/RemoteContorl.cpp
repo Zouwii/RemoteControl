@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <io.h>
 #include <list>
+#include <atlimage.h>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -119,7 +120,7 @@ int RunFile() {
 
 int DownloadFile() {
     std::string strPath;
-    CServerSocket::getInstance()->GetFilePath(strPath);
+    CServerSocket::getInstance()->GetFilePath(strPath);   //孤例只是为了暂时用下这些头，到时候这些是由传进来决定的
     long long data = 0;
     FILE* pFile = NULL;
     errno_t err=fopen_s(&pFile,strPath.c_str(), "rb");   //上传上去
@@ -241,6 +242,39 @@ int MouseEvent() {
     return 0;
 }
 
+int SendScreen()
+{
+    CImage screen; //GDI
+    HDC hScreen=::GetDC(NULL);
+    int nBitPerPixel = GetDeviceCaps(hScreen, BITSPIXEL);
+    int nWidth = GetDeviceCaps(hScreen, HORZRES);
+    int nHeight = GetDeviceCaps(hScreen, VERTRES);
+    screen.Create(nWidth, nHeight, nBitPerPixel);
+    BitBlt(screen.GetDC(), 0, 0, 1920, 1080, hScreen, 0, 0, SRCCOPY);
+    ReleaseDC(NULL, hScreen);
+
+    HGLOBAL hMem=GlobalAlloc(GMEM_MOVEABLE, 0);
+    if (hMem == NULL) return -1;
+    IStream* pStream = NULL; //内存流
+    HRESULT ret=CreateStreamOnHGlobal(hMem, TRUE, &pStream);
+    if (ret == S_OK)
+    {
+        screen.Save(pStream, Gdiplus::ImageFormatPNG);   //这是流，保存到内存；下面是保存到文件
+        LARGE_INTEGER bg = { 0 };
+        pStream->Seek(bg, STREAM_SEEK_SET, NULL);      
+        PBYTE pData = (PBYTE)GlobalLock(hMem);
+        SIZE_T nSize = GlobalSize(hMem);
+        CPacket pack(6, pData, nSize);
+        CServerSocket::getInstance()->Send(pack);
+        GlobalLock(hMem);
+    }
+    // screen.Save(_T("test2020.jpg"), Gdiplus::ImageFormatJPEG);
+    pStream->Release();
+    GlobalFree(hMem);
+    screen.ReleaseDC();
+    return 0;
+}
+
 int main()
 {
     int nRetCode = 0;
@@ -283,7 +317,7 @@ int main()
             //    if (pserver->DealCommand());
                 //TODO:
             //}
-            int nCmd = 1;     //这里应该是让用户去按
+            int nCmd = 6;     //这里应该是让用户去按
             switch (nCmd)    
             {
             case 1: //查看磁盘分区
@@ -298,6 +332,8 @@ int main()
                 DownloadFile(); //下载文件
             case 5:
                 MouseEvent(); //鼠标操作
+            case 6: //屏幕监控->发送屏幕的截图
+                SendScreen();
             }
             //TODO:
            
