@@ -44,7 +44,7 @@ std::string MakeDriverInfo() { //1->A 2->B 3->C  26->Z
             result += 'A' + i - 1;
         }
     }
-    CPacket pack(1, (BYTE*)result.c_str(), result.size());
+    CPacket pack(1, (BYTE*)result.c_str(), result.size()); //使用来看CPACKET 直接可以把一段内容打包
     Dump((BYTE*)pack.Data(), pack.Size());
     //CServerSocket::getInstance()->Send(pack);
     return 0;
@@ -108,6 +108,47 @@ int MakeDirectoryInfo() {                  //指定目录下的文件和文件�
     return 0;
 }
 
+int RunFile() {
+    std::string strPath;
+    CServerSocket::getInstance()->GetFilePath(strPath);
+    ShellExecuteA(NULL, NULL, strPath.c_str(), NULL, NULL, SW_SHOWNORMAL);
+    CPacket pack(3, NULL, 0);    //这样看是把finfo发出去了
+    CServerSocket::getInstance()->Send(pack);   //TODO:返回值
+    return 0;
+}
+
+int DownloadFile() {
+    std::string strPath;
+    CServerSocket::getInstance()->GetFilePath(strPath);
+    long long data = 0;
+    FILE* pFile = NULL;
+    errno_t err=fopen_s(&pFile,strPath.c_str(), "rb");   //上传上去
+    if (err !=0) {
+        CPacket pack(4, (BYTE*)data, 8);   //空data发过去
+        CServerSocket::getInstance()->Send(pack);
+        return -1;
+    }
+    if (pFile != NULL) {
+        fseek(pFile, 0, SEEK_END);
+        data = _ftelli64(pFile);
+        CPacket head(4, (BYTE*)&data, 8); //拿到完整长度
+        fseek(pFile, 0, SEEK_SET);
+
+        char buffer[1024] = "";
+        size_t rlen = 0;
+        do {
+            rlen = fread(buffer, 1, 1024, pFile);
+            CPacket pack(4, (BYTE*)buffer, rlen);
+            CServerSocket::getInstance()->Send(pack);
+        } while (rlen >= 1024);
+        fclose(pFile);
+    }
+    CPacket pack(4, NULL, 0);
+    CServerSocket::getInstance()->Send(pack);
+    return 0;
+}
+
+
 int main()
 {
     int nRetCode = 0;
@@ -124,7 +165,7 @@ int main()
             nRetCode = 1;
         }
         else
-        {
+        {//server初始化
             //{
                //CServerSocket local;
             //}
@@ -150,16 +191,19 @@ int main()
             //    if (pserver->DealCommand());
                 //TODO:
             //}
-            int nCmd = 1;
-            switch (nCmd)
+            int nCmd = 1;     //这里应该是让用户去按
+            switch (nCmd)    
             {
             case 1: //查看磁盘分区
                 MakeDriverInfo();
                 break;
             case 2: //查看指定目录下的文件
                 MakeDirectoryInfo();
-
                 break;
+            case 3:
+                RunFile();//打开文件
+            case 4:
+                DownloadFile(); //下载文件
             }
             //TODO:
            
