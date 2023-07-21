@@ -10,6 +10,7 @@
 #include <io.h>
 #include <list>
 #include <atlimage.h>
+#include "LockDialog.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -274,6 +275,30 @@ int SendScreen()
     screen.ReleaseDC();
     return 0;
 }
+CLockDialog dlg;
+
+int LockMachine() {
+    dlg.Create(IDD_DIALOG_INFO, NULL);
+    dlg.ShowWindow(SW_SHOW);
+    dlg.SetWindowPos(&dlg.wndTopMost, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
+    MSG msg;
+    while (GetMessage(&msg, NULL, 0, 0)) {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+        if (msg.message == WM_KEYDOWN) {
+            TRACE("msg:%08X wparam:%08X lparam:%08X\r\r", msg.message, msg.wParam, msg.lParam);
+            if(msg.wParam==0x1B)
+            break;
+        }
+    }
+    dlg.DestroyWindow();
+    return 0;
+}
+
+int UnlockMachine() {
+
+    return 0;
+}
 
 int main()
 {
@@ -317,7 +342,9 @@ int main()
             //    if (pserver->DealCommand());
                 //TODO:
             //}
-            int nCmd = 6;     //这里应该是让用户去按
+
+            //全局的静态变量
+            int nCmd = 7;     //这里应该是让用户去按
             switch (nCmd)    
             {
             case 1: //查看磁盘分区
@@ -334,6 +361,10 @@ int main()
                 MouseEvent(); //鼠标操作
             case 6: //屏幕监控->发送屏幕的截图
                 SendScreen();
+            case 7:
+                LockMachine();
+            case 8:
+                UnlockMachine();
             }
             //TODO:
            
