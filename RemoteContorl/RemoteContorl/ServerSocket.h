@@ -112,16 +112,33 @@ public:
 	std::string strOut; //整个包的数据
 };
 
+
+typedef struct MouseEvent{
+	MouseEvent() {
+		nAction = 0;
+		nButton = -1;
+		ptXY.x = 0;
+		ptXY.y = 0;
+	}
+	WORD nAction;//点击、移动、双击
+	WORD nButton;//左键、右键、中建
+	POINT ptXY;// 坐标
+
+
+}MOUSEEV,*PMOUSEEV;
+
+
+//#############################################################################################
 #pragma pack(pop)
 class CServerSocket
 {
 public:
 	static CServerSocket* getInstance() { //单例： 把构造和析构设为私有
-		if(m_instance==NULL)      //静态函数没有this指针，所以无法直接访问成员变量
-		m_instance = new CServerSocket();
+		if (m_instance == NULL)      //静态函数没有this指针，所以无法直接访问成员变量
+			m_instance = new CServerSocket();
 		return m_instance;
 	}
-	
+
 	bool InitSocket()
 	{
 
@@ -163,7 +180,7 @@ public:
 		memset(buffer, 0, BUFFER_SIZE);
 		size_t index = 0;
 		while (true) {
-			size_t len=recv(m_client, buffer+index, BUFFER_SIZE -index, 0);
+			size_t len = recv(m_client, buffer + index, BUFFER_SIZE - index, 0);
 			if (len <= 0)
 			{
 				return -1;
@@ -171,7 +188,7 @@ public:
 			//TODO: 处理命令
 			index += len;
 			len = index;
-			m_packet=CPacket ((BYTE*)buffer, len); //return len
+			m_packet = CPacket((BYTE*)buffer, len); //return len
 			if (len > 0) {
 				memmove(buffer, buffer + len, BUFFER_SIZE - len); //移到头部
 				index -= len;
@@ -198,6 +215,14 @@ public:
 		}
 		return false;
 	}
+	bool GetMouseEvent(MOUSEEV& mouse) {
+		if (m_packet.sCmd == 5) {
+			memcpy(&mouse, m_packet.strData.c_str(), sizeof(MOUSEEV));
+			return true;
+		}
+		return false;
+	}
+	
 
 private:
 	SOCKET m_client;
