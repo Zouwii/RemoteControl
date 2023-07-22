@@ -172,7 +172,7 @@ public:
 	}
 
 #define BUFFER_SIZE 4096
-	int DealCommand()
+	int DealCommand()              //把recv的包放进m_packet中
 	{
 		if (m_client == -1) return false;
 		//char buffer[1024] = "";
@@ -188,14 +188,15 @@ public:
 			//TODO: 处理命令
 			index += len;
 			len = index;
-			m_packet = CPacket((BYTE*)buffer, len); //return len
+			m_packet = CPacket((BYTE*)buffer, len); // 此时把buffer解读为m_packet 执行完后len=0
 			if (len > 0) {
 				memmove(buffer, buffer + len, BUFFER_SIZE - len); //移到头部
 				index -= len;
-				return m_packet.sCmd;     //最后返回的是cmd
+				return m_packet.sCmd;     //异常的情况，最后返回的是cmd
 			}
 		}
-		return -1;
+		//TODO: WORENWEISHI 0 return -1;
+		return 0;
 	}
 
 	bool Send(const char* pData, size_t nSize)
@@ -222,7 +223,14 @@ public:
 		}
 		return false;
 	}
-	
+
+	CPacket& GetPacket() {
+		return m_packet;
+	}
+	void CloseClient() {
+		closesocket(m_client);
+		m_client = INVALID_SOCKET;
+	}
 
 private:
 	SOCKET m_client;

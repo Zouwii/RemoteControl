@@ -36,7 +36,7 @@ void Dump(BYTE* pData, size_t nSize)      //导出一下看看
     OutputDebugStringA(strOut.c_str());
 }
 
-std::string MakeDriverInfo() { //1->A 2->B 3->C  26->Z
+int MakeDriverInfo() { //1->A 2->B 3->C  26->Z
     std::string result;
     for (int i = 1; i <= 26; i++)
     {
@@ -339,6 +339,42 @@ int UnlockMachine() {
     return 0;
 }
 
+int ExecuteCommand(int nCmd)
+{
+    int ret = 0;
+    //全局的静态变量
+    switch (nCmd)
+    {
+    case 1: //查看磁盘分区
+        ret=MakeDriverInfo();
+        break;
+    case 2: //查看指定目录下的文件
+        ret = MakeDirectoryInfo();
+        break;
+    case 3:
+        ret = RunFile();//打开文件
+        break;
+    case 4:
+        ret = DownloadFile(); //下载文件
+        break;
+    case 5:
+        ret = MouseEvent(); //鼠标操作
+        break;
+    case 6: //屏幕监控->发送屏幕的截图
+        ret = SendScreen();
+        break;
+    case 7:
+    {
+        ret = LockMachine();
+        break;
+    }
+    case 8:
+        ret = UnlockMachine();
+        break;
+    }
+    return 0;
+}
+
 int main()
 {
     int nRetCode = 0;
@@ -355,76 +391,39 @@ int main()
             nRetCode = 1;
         }
         else
-        {//server初始化
-            //{
-               //CServerSocket local;
-            //}
-            //CServerSocket* pserver= CServerSocket::getInstance();   //创建单例
-            //int count = 0;
-            //if (pserver->InitSocket() == false)
-            //{
-            //    MessageBox(NULL, _T("网络初始化异常，请检查网络连接！"), _T("网络初始化失败"), MB_OK | MB_ICONERROR);
-            //    exit(0);
-            //}
-            //while(CServerSocket::getInstance()!=NULL)
-            //{
-            //    if (pserver->AcceptClient() == false)
-            //    {
-            //        if (count >= 3)
-            //        {
-            //            MessageBox(NULL, _T("多次无法正常接入用户，结束程序！"), _T("接入用户失败"), MB_OK | MB_ICONERROR);
-            //            exit(0);
-            //        }
-            //        MessageBox(NULL, _T("无法正常接入用户，自动重试！"), _T("接入用户失败"), MB_OK | MB_ICONERROR);
-            //        count++;
-            //    }
-            //    if (pserver->DealCommand());
+        {
+            CServerSocket* pserver= CServerSocket::getInstance();   //创建单例
+            int count = 0;
+            if (pserver->InitSocket() == false)
+            {
+                MessageBox(NULL, _T("网络初始化异常，请检查网络连接！"), _T("网络初始化失败"), MB_OK | MB_ICONERROR);
+                exit(0);
+            }
+            while(CServerSocket::getInstance()!=NULL)
+            {
+                if (pserver->AcceptClient() == false)
+                {
+                    if (count >= 3)
+                    {
+                        MessageBox(NULL, _T("多次无法正常接入用户，结束程序！"), _T("接入用户失败"), MB_OK | MB_ICONERROR);
+                        exit(0);
+                    }
+                    MessageBox(NULL, _T("无法正常接入用户，自动重试！"), _T("接入用户失败"), MB_OK | MB_ICONERROR);
+                    count++;
+                }
+                int ret=pserver->DealCommand(); //dealcommand返回sCmd
+                if (ret == 0)                //TODO:为什么等于0呢
+                {
+                    ret=ExecuteCommand(pserver->GetPacket().sCmd);
+                    if (ret != 0)
+                    {
+                        TRACE("执行命令失败：%d ret=%d\r\n", pserver->GetPacket().sCmd, ret);
+                    }
+                    pserver->CloseClient();
+                }
+                
                 //TODO:
-            //}
-
-            //全局的静态变量
-            int nCmd = 7;     //这里应该是让用户去按
-            switch (nCmd)    
-            {
-            case 1: //查看磁盘分区
-                MakeDriverInfo();
-                break;
-            case 2: //查看指定目录下的文件
-                MakeDirectoryInfo();
-                break;
-            case 3:
-                RunFile();//打开文件
-                break;
-            case 4:
-                DownloadFile(); //下载文件
-                break;
-            case 5:
-                MouseEvent(); //鼠标操作
-                break;
-            case 6: //屏幕监控->发送屏幕的截图
-                SendScreen();
-                break;
-            case 7:
-            {
-                LockMachine();
-                Sleep(50);
-                //TRACE("sleep done threadid=%d\r\r", threadid);   //搞了半天是没有break的问题
-                //LockMachine();
-                break;
             }
-            case 8:
-                UnlockMachine();
-                break;
-            }
-            //TODO:
-            //Sleep(5000);
-            //UnlockMachine();
-            while (dlg.m_hWnd != NULL) { //对话框没结束去析构，会出现异常
-                Sleep(50);
-            }
-            TRACE("m_hWnd=%08X\r\n", dlg.m_hWnd);
-            
-           
 
         }
     }
