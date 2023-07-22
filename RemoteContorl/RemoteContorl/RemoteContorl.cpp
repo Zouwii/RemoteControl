@@ -276,26 +276,65 @@ int SendScreen()
     return 0;
 }
 CLockDialog dlg;
+unsigned threadid = 0;
 
-int LockMachine() {
+unsigned __stdcall  threadLockDlg(void* arg) {
     dlg.Create(IDD_DIALOG_INFO, NULL);
     dlg.ShowWindow(SW_SHOW);
+    CRect rect;                    //矩形
+    rect.right = GetSystemMetrics(SM_CXFULLSCREEN);
+    rect.bottom = GetSystemMetrics(SM_CYFULLSCREEN);
+    rect.bottom *= 1.2;
+    //TRACE("right=%d bott=%d\r\r",  rect.right, rect.bottom);
+    dlg.MoveWindow(rect);
+    //窗口置顶
     dlg.SetWindowPos(&dlg.wndTopMost, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
+    ShowCursor(false);
+
+    //限制鼠标
+    dlg.GetWindowRect(rect);
+    ClipCursor(rect);
+    ::ShowWindow(::FindWindow(_T("Shell_TrayWnd"), NULL), SW_HIDE); //任务栏隐藏
+    //
     MSG msg;
     while (GetMessage(&msg, NULL, 0, 0)) {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
         if (msg.message == WM_KEYDOWN) {
             TRACE("msg:%08X wparam:%08X lparam:%08X\r\r", msg.message, msg.wParam, msg.lParam);
-            if(msg.wParam==0x1B)
-            break;
+            if (msg.wParam == 0x41) {   //a  退出
+                break;
+                TRACE("break1 threadid=%d\r\r", threadid);
+            }
         }
     }
+    ShowCursor(true);
+    ::ShowWindow(::FindWindow(_T("Shell_TrayWnd"), NULL), SW_SHOW);
     dlg.DestroyWindow();
+    //_endthread();
+    _endthreadex(0);
+
+    return 0;
+}
+
+
+int LockMachine() {
+    if ((dlg.m_hWnd == NULL) || (dlg.m_hWnd == INVALID_HANDLE_VALUE)) {  //dlg为空或者被销毁过，才去创建
+       // _beginthread(threadLockDlg, 0, NULL);  
+        _beginthreadex(NULL, 0, threadLockDlg, NULL, 0, &threadid);
+    }
+    CPacket pack(7, NULL, 0);
+    CServerSocket::getInstance()->Send(pack);
+    
     return 0;
 }
 
 int UnlockMachine() {
+    //dlg.SendMessage(WM_KEYDOWN, 0x41, 0x01E0001);
+    //::SendMessage(dlg.m_hWnd, WM_KEYDOWN, 0x41, 0x01E0001);
+    PostThreadMessage(threadid, WM_KEYDOWN, 0x41, 0);
+    CPacket pack(7, NULL, 0);
+    CServerSocket::getInstance()->Send(pack);
 
     return 0;
 }
@@ -355,18 +394,36 @@ int main()
                 break;
             case 3:
                 RunFile();//打开文件
+                break;
             case 4:
                 DownloadFile(); //下载文件
+                break;
             case 5:
                 MouseEvent(); //鼠标操作
+                break;
             case 6: //屏幕监控->发送屏幕的截图
                 SendScreen();
+                break;
             case 7:
+            {
                 LockMachine();
+                Sleep(50);
+                //TRACE("sleep done threadid=%d\r\r", threadid);   //搞了半天是没有break的问题
+                //LockMachine();
+                break;
+            }
             case 8:
                 UnlockMachine();
+                break;
             }
             //TODO:
+            //Sleep(5000);
+            //UnlockMachine();
+            while (dlg.m_hWnd != NULL) { //对话框没结束去析构，会出现异常
+                Sleep(50);
+            }
+            TRACE("m_hWnd=%08X\r\n", dlg.m_hWnd);
+            
            
 
         }
