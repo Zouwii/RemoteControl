@@ -1,12 +1,11 @@
-﻿  pch.cpp
-  ClientSocket.cpp
-E:\QGitProject\git-demo-1\RemoteContorl\RemoteClient\ClientSocket.h(59,10): warning C4244: “=”: 从“DWORD”转换到“WORD”，可能丢失数据
-E:\QGitProject\git-demo-1\RemoteContorl\RemoteClient\ClientSocket.h(66,10): warning C4244: “=”: 从“DWORD”转换到“WORD”，可能丢失数据
+﻿  ClientSocket.cpp
+E:\QGitProject\git-demo-1\RemoteContorl\RemoteClient\ClientSocket.h(61,10): warning C4244: “=”: 从“DWORD”转换到“WORD”，可能丢失数据
+E:\QGitProject\git-demo-1\RemoteContorl\RemoteClient\ClientSocket.h(68,10): warning C4244: “=”: 从“DWORD”转换到“WORD”，可能丢失数据
   RemoteClient.cpp
-E:\QGitProject\git-demo-1\RemoteContorl\RemoteClient\ClientSocket.h(59,10): warning C4244: “=”: 从“DWORD”转换到“WORD”，可能丢失数据
-E:\QGitProject\git-demo-1\RemoteContorl\RemoteClient\ClientSocket.h(66,10): warning C4244: “=”: 从“DWORD”转换到“WORD”，可能丢失数据
+E:\QGitProject\git-demo-1\RemoteContorl\RemoteClient\ClientSocket.h(61,10): warning C4244: “=”: 从“DWORD”转换到“WORD”，可能丢失数据
+E:\QGitProject\git-demo-1\RemoteContorl\RemoteClient\ClientSocket.h(68,10): warning C4244: “=”: 从“DWORD”转换到“WORD”，可能丢失数据
   RemoteClientDlg.cpp
-E:\QGitProject\git-demo-1\RemoteContorl\RemoteClient\ClientSocket.h(59,10): warning C4244: “=”: 从“DWORD”转换到“WORD”，可能丢失数据
-E:\QGitProject\git-demo-1\RemoteContorl\RemoteClient\ClientSocket.h(66,10): warning C4244: “=”: 从“DWORD”转换到“WORD”，可能丢失数据
+E:\QGitProject\git-demo-1\RemoteContorl\RemoteClient\ClientSocket.h(61,10): warning C4244: “=”: 从“DWORD”转换到“WORD”，可能丢失数据
+E:\QGitProject\git-demo-1\RemoteContorl\RemoteClient\ClientSocket.h(68,10): warning C4244: “=”: 从“DWORD”转换到“WORD”，可能丢失数据
   正在生成代码...
   RemoteClient.vcxproj -> E:\QGitProject\git-demo-1\RemoteContorl\Debug\RemoteClient.exe

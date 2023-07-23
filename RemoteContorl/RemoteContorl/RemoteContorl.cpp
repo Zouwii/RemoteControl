@@ -339,6 +339,13 @@ int UnlockMachine() {
     return 0;
 }
 
+int TestConnect() {
+    CPacket pack(1981, NULL, 0);
+    bool ret=CServerSocket::getInstance()->Send(pack);
+    TRACE("SERVER TESTCONNECT: Send ret= %d\r\n", ret);
+    return 0;
+}
+
 int ExecuteCommand(int nCmd)
 {
     int ret = 0;
@@ -371,6 +378,9 @@ int ExecuteCommand(int nCmd)
     case 8:
         ret = UnlockMachine();
         break;
+    case 1981:
+        ret = TestConnect();
+
     }
     return 0;
 }
@@ -411,20 +421,24 @@ int main()
                     MessageBox(NULL, _T("无法正常接入用户，自动重试！"), _T("接入用户失败"), MB_OK | MB_ICONERROR);
                     count++;
                 }
+                TRACE("AcceptClient return true\r\n");
                 int ret=pserver->DealCommand(); //dealcommand返回sCmd
-                if (ret == 0)                //TODO:为什么等于0呢
+                TRACE("DealCommand ret=%d\r\n", ret);
+                if (ret > 0)                //TODO:为什么等于0呢
                 {
-                    ret=ExecuteCommand(pserver->GetPacket().sCmd);
+                    ret=ExecuteCommand(pserver->GetPacket().sCmd);   //##目标 走进execute 执行1981-》TestConnect
+
                     if (ret != 0)
                     {
                         TRACE("执行命令失败：%d ret=%d\r\n", pserver->GetPacket().sCmd, ret);
                     }
                     pserver->CloseClient();
+                    TRACE("command has done!\r\r");
                 }
                 
                 //TODO:
             }
-
+            //ExecuteCommand(1);
         }
     }
     else

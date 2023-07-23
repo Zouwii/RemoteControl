@@ -165,6 +165,10 @@ void CRemoteClientDlg::OnBnClickedBtnTest()
 		AfxMessageBox("网络初始化失败！");
 		TRACE("连接失败：%d %s\r\n", WSAGetLastError(), GetErrInfo(WSAGetLastError()).c_str());
 	}
-	//CPacket pack;
-	//pClient->Send(pack);
+	CPacket pack(1981, NULL, 0);
+	ret=pClient->Send(pack);
+	TRACE("Client Send ret %d\r\n", ret);
+	int cmd=pClient->DealCommand();
+	TRACE("CLIENT ACK: %d \r\n", cmd);
+	pClient->CloseSocket();
 }

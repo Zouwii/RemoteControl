@@ -44,7 +44,7 @@ public:
 				break;
 			}
 		}				//包数据可能不全，或者包头没有全部接收到
-		if (i+4+2+2 >= nSize) {                                   //[][] [][][][] [][] [][][][][] [][]
+		if (i+4+2+2 > nSize) {                                   //[][] [][][][] [][] [][][][][] [][]    //!!!!!!!!!!!!!!!
 			nSize = 0; //没检出包来，用掉0字节                    //head  length   cmd            sum
 			return;
 		}
@@ -129,6 +129,10 @@ typedef struct MouseEvent{
 
 
 //#############################################################################################
+
+//SERVER SOCKET!!!!
+
+//###########################################################################################
 #pragma pack(pop)
 class CServerSocket
 {
@@ -163,10 +167,12 @@ public:
 	}
 	bool AcceptClient()
 	{
+		TRACE("enter AcceptClient\r\n");
 		sockaddr_in client_adr;
 		char buffer[1024];
 		int cli_sz = sizeof(client_adr);
 		m_client = accept(m_sock, (sockaddr*)&client_adr, &cli_sz);
+		TRACE("m_client=%d\r\n",m_client);
 		if (m_client == -1) return false;
 		return true;
 	}
@@ -177,26 +183,35 @@ public:
 		if (m_client == -1) return false;
 		//char buffer[1024] = "";
 		char* buffer = new char[BUFFER_SIZE];
+		if (buffer == NULL)
+		{
+			TRACE("服务端内存不足\r\n");
+			return -2;
+		}
 		memset(buffer, 0, BUFFER_SIZE);
 		size_t index = 0;
 		while (true) {
 			size_t len = recv(m_client, buffer + index, BUFFER_SIZE - index, 0);
 			if (len <= 0)
 			{
+				delete[] buffer;
 				return -1;
 			}
+			TRACE("DealCommand-- recv:%d\r\n", len);
 			//TODO: 处理命令
 			index += len;
 			len = index;
-			m_packet = CPacket((BYTE*)buffer, len); // 此时把buffer解读为m_packet 执行完后len=0
+			m_packet = CPacket((BYTE*)buffer, len); // 此时把buffer解读为m_packet 执行完后len=i
 			if (len > 0) {
 				memmove(buffer, buffer + len, BUFFER_SIZE - len); //移到头部
 				index -= len;
+				delete[] buffer;
 				return m_packet.sCmd;     //异常的情况，最后返回的是cmd
 			}
+			
 		}
-		//TODO: WORENWEISHI 0 return -1;
-		return 0;
+		delete[] buffer;
+		return -1;
 	}
 
 	bool Send(const char* pData, size_t nSize)

@@ -1,15 +1,13 @@
-﻿  pch.cpp
-  LockDialog.cpp
-  RemoteContorl.cpp
+﻿  RemoteContorl.cpp
 E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ServerSocket.h(57,10): warning C4244: “=”: 从“DWORD”转换到“WORD”，可能丢失数据
 E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ServerSocket.h(64,10): warning C4244: “=”: 从“DWORD”转换到“WORD”，可能丢失数据
-E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ServerSocket.h(146,25): warning C4101: “client_adr”: 未引用的局部变量
-E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ServerSocket.h(167,8): warning C4101: “buffer”: 未引用的局部变量
+E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ServerSocket.h(150,25): warning C4101: “client_adr”: 未引用的局部变量
+E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ServerSocket.h(172,8): warning C4101: “buffer”: 未引用的局部变量
 E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\RemoteContorl.cpp(287,23): warning C4244: “*=”: 从“double”转换到“LONG”，可能丢失数据
   ServerSocket.cpp
 E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ServerSocket.h(57,10): warning C4244: “=”: 从“DWORD”转换到“WORD”，可能丢失数据
 E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ServerSocket.h(64,10): warning C4244: “=”: 从“DWORD”转换到“WORD”，可能丢失数据
-E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ServerSocket.h(146,25): warning C4101: “client_adr”: 未引用的局部变量
-E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ServerSocket.h(167,8): warning C4101: “buffer”: 未引用的局部变量
+E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ServerSocket.h(150,25): warning C4101: “client_adr”: 未引用的局部变量
+E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ServerSocket.h(172,8): warning C4101: “buffer”: 未引用的局部变量
   正在生成代码...
   RemoteContorl.vcxproj -> E:\QGitProject\git-demo-1\RemoteContorl\Debug\RemoteContorl.exe

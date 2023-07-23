@@ -4,6 +4,8 @@
 #include "pch.h"
 #include "framework.h"
 #include <string>
+#include <iostream>
+#include <vector>
 
 #pragma pack(push)
 #pragma pack(1)
@@ -46,7 +48,7 @@ public:
 				break;
 			}
 		}				//包数据可能不全，或者包头没有全部接收到
-		if (i + 4 + 2 + 2 >= nSize) {                                   //[][] [][][][] [][] [][][][][] [][]
+		if (i + 4 + 2 + 2 > nSize) {                                   //[][] [][][][] [][] [][][][][] [][]
 			nSize = 0; //没检出包来，用掉0字节                    //head  length   cmd            sum
 			return;
 		}
@@ -147,7 +149,8 @@ public:
 
 	bool InitSocket(const std::string& strIPAddress)
 	{
-
+		if (m_sock != INVALID_SOCKET) CloseSocket();
+		m_sock = socket(PF_INET, SOCK_STREAM, 0);
 		if (m_sock == -1)return false;
 		sockaddr_in serv_adr;
 		memset(&serv_adr, 0, sizeof(serv_adr));
@@ -176,7 +179,7 @@ public:
 	{
 		if (m_sock == -1) return false;
 		//char buffer[1024] = "";
-		char* buffer = new char[BUFFER_SIZE];
+		char* buffer = m_buffer.data();
 		memset(buffer, 0, BUFFER_SIZE);
 		size_t index = 0;
 		while (true) {
@@ -195,6 +198,7 @@ public:
 				return m_packet.sCmd;     //最后返回的是cmd
 			}
 		}
+		
 		return -1;
 	}
 
@@ -205,7 +209,9 @@ public:
 	}
 	bool Send(CPacket& pack)
 	{
+		TRACE("m_sock=%d\r\n", m_sock);
 		if (m_sock == -1) return false;
+		TRACE("SEND BUFFER: %s\r\n", pack.Data());
 		return send(m_sock, pack.Data(), pack.Size(), 0) > 0;
 	}
 	bool GetFilePath(std::string& strPath) {   //包信息应该就是路径
@@ -223,9 +229,17 @@ public:
 		return false;
 	}
 
+	CPacket& GetPacket() {
+		return m_packet;
+	}
+
+	void CloseSocket() {
+		closesocket(m_sock);
+		m_sock = INVALID_SOCKET;
+	}
 
 private:
-	
+	std::vector<char> m_buffer;
 	SOCKET m_sock;
 	CPacket m_packet;
 	CClientSocket& operator=(const CClientSocket& ss) {}
@@ -239,7 +253,7 @@ private:
 			MessageBox(NULL, _T("无法初始化套接字环境，请检查网络设置！"), _T("初始化错误"), MB_OK | MB_ICONERROR);
 			exit(0);
 		}
-		m_sock = socket(PF_INET, SOCK_STREAM, 0);
+		m_buffer.resize(BUFFER_SIZE);
 
 	};
 	~CClientSocket() {
