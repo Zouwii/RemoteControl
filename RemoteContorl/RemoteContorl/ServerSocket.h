@@ -34,7 +34,7 @@ public:
 		strData = pack.strData;
 		sSum = pack.sSum;
 	}
-	CPacket(const BYTE* pData, size_t& nSize) {   
+	CPacket(const BYTE* pData, size_t& nSize) {   //½â°ü
 		size_t i = 0;
 		for (; i < nSize; i++)
 		{
@@ -151,7 +151,7 @@ public:
 		memset(&serv_adr, 0, sizeof(serv_adr));
 		serv_adr.sin_family = AF_INET;
 		serv_adr.sin_addr.s_addr = INADDR_ANY;
-		serv_adr.sin_port = htons(9627);
+		serv_adr.sin_port = htons(9527);
 
 		//bind
 		int ret = bind(m_sock, (sockaddr*)&serv_adr, sizeof(serv_adr));

@@ -48,7 +48,7 @@ int MakeDriverInfo() { //1->A 2->B 3->C  26->Z
     }
     CPacket pack(1, (BYTE*)result.c_str(), result.size()); //使用来看CPACKET 直接可以把一段内容打包
     Dump((BYTE*)pack.Data(), pack.Size());
-    //CServerSocket::getInstance()->Send(pack);
+    CServerSocket::getInstance()->Send(pack);
     return 0;
 }
 

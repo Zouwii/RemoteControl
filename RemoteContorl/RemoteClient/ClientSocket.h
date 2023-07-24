@@ -147,7 +147,7 @@ public:
 		return m_instance;
 	}
 
-	bool InitSocket(const std::string& strIPAddress)
+	bool InitSocket(int nIP,int nPort)
 	{
 		if (m_sock != INVALID_SOCKET) CloseSocket();
 		m_sock = socket(PF_INET, SOCK_STREAM, 0);
@@ -155,8 +155,8 @@ public:
 		sockaddr_in serv_adr;
 		memset(&serv_adr, 0, sizeof(serv_adr));
 		serv_adr.sin_family = AF_INET;
-		serv_adr.sin_addr.s_addr = inet_addr(strIPAddress.c_str());
-		serv_adr.sin_port = htons(9627);
+		serv_adr.sin_addr.s_addr = htonl(nIP);
+		serv_adr.sin_port = htons(nPort); //9527
 
 
 		if (serv_adr.sin_addr.s_addr == INADDR_NONE) {
@@ -211,7 +211,6 @@ public:
 	{
 		TRACE("m_sock=%d\r\n", m_sock);
 		if (m_sock == -1) return false;
-		TRACE("SEND BUFFER: %s\r\n", pack.Data());
 		return send(m_sock, pack.Data(), pack.Size(), 0) > 0;
 	}
 	bool GetFilePath(std::string& strPath) {   //包信息应该就是路径
