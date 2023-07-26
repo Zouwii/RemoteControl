@@ -6,6 +6,8 @@
 #pragma pack(push)
 #pragma pack(1)
 
+void Dump(BYTE* pData, size_t nSize);
+
 class CPacket
 {
 public:
@@ -127,6 +129,19 @@ typedef struct MouseEvent{
 
 }MOUSEEV,*PMOUSEEV;
 
+typedef struct file_info {
+	file_info() {
+		IsInvalid = FALSE;
+		IsDirectory = -1;
+		HasNext = TRUE;
+		memset(szFileName, 0, sizeof(szFileName));
+	}
+	char szFileName[256];
+	BOOL IsDirectory; //是否目录 0否1是 WENJIANJIA
+	BOOL IsInvalid; // 是否有效
+	BOOL HasNext;  //0无 1有
+}FILEINFO, * PFILEINFO;
+
 
 //#############################################################################################
 
@@ -147,7 +162,7 @@ public:
 	{
 
 		if (m_sock == -1)return false;
-		sockaddr_in serv_adr, client_adr;
+		sockaddr_in serv_adr;
 		memset(&serv_adr, 0, sizeof(serv_adr));
 		serv_adr.sin_family = AF_INET;
 		serv_adr.sin_addr.s_addr = INADDR_ANY;
@@ -222,6 +237,7 @@ public:
 	bool Send(CPacket& pack)
 	{
 		if (m_client == -1) return false;
+		Dump((BYTE*)pack.Data(), pack.Size());
 		return send(m_client, pack.Data(), pack.Size(), 0) > 0;
 	}
 	bool GetFilePath(std::string& strPath) {   //包信息应该就是路径

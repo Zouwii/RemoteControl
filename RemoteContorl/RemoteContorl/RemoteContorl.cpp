@@ -52,18 +52,6 @@ int MakeDriverInfo() { //1->A 2->B 3->C  26->Z
     return 0;
 }
 
-typedef struct file_info{
-    file_info() {
-        IsInvalid = FALSE;
-        IsDirectory = -1;
-        HasNext = TRUE;
-        memset(szFileName, 0, sizeof(szFileName));
-    }
-    char szFileName[256];
-    BOOL IsDirectory; //是否目录 0否1是 WENJIANJIA
-    BOOL IsInvalid; // 是否有效
-    BOOL HasNext;  //0无 1有
-}FILEINFO,*PFILEINFO;
 
 int MakeDirectoryInfo() {                  //指定目录下的文件和文件夹
     std::string strPath;
@@ -75,35 +63,39 @@ int MakeDirectoryInfo() {                  //指定目录下的文件和文件�
     }
     if (_chdir(strPath.c_str())!=0) {   //失败的情况
         FILEINFO finfo;
-        finfo.IsInvalid = TRUE;
-        finfo.IsDirectory = TRUE;
         finfo.HasNext = FALSE;
-        memcpy(finfo.szFileName, strPath.c_str(), strPath.size());   //这里把文件名拷到finfo来
-        //lstFileInfos.push_back(finfo);
         CPacket pack(2,(BYTE*)&finfo,sizeof(finfo));    //这样看是把finfo发出去了
         CServerSocket::getInstance()->Send(pack);   //TODO:返回值
+
         OutputDebugString(_T("没有权限访问目录！"));
         return -2;
     }
     _finddata_t fdata;
     int hfind = 0;
     if ((hfind=_findfirst("*", &fdata)) == -1) {
+        FILEINFO finfo;
+        finfo.HasNext = FALSE;    //此时szfilename=空
+        CPacket pack(2, (BYTE*)&finfo, sizeof(finfo));    //这样看是把finfo发出去了
+        CServerSocket::getInstance()->Send(pack);   //TODO:返回值
+
         OutputDebugString(_T("没有找到任何文件！"));
         return -3;
     }
     do {
         FILEINFO finfo;
-        finfo.IsDirectory = ((fdata.attrib & _A_SUBDIR) != 0);
+        finfo.IsDirectory = ((fdata.attrib & _A_SUBDIR) != 0);   //用这个去判断了是否目录的！！
         //finfo.IsInvalid = FALSE;
         memcpy(finfo.szFileName, fdata.name, strlen(fdata.name)); //把找到文件名放进list中
+        TRACE("%s \r\n", finfo.szFileName);
+
         CPacket pack(2, (BYTE*)&finfo, sizeof(finfo));    //这样看是把finfo发出去了
         CServerSocket::getInstance()->Send(pack);   //TODO:返回值
 
         //lstFileInfos.push_back(finfo);
     } while (!_findnext(hfind, &fdata));
-    //发送信息到控制端  但是文件夹文件太多会有问题
+    //发送信息到控制端
     FILEINFO finfo;
-    finfo.HasNext = FALSE;
+    finfo.HasNext = FALSE;    //此时szfilename=空
     CPacket pack(2, (BYTE*)&finfo, sizeof(finfo));    //这样看是把finfo发出去了
     CServerSocket::getInstance()->Send(pack);   //TODO:返回值
 

@@ -116,6 +116,7 @@ public:
 	std::string strOut; //整个包的数据
 };
 
+//###############################################################
 
 typedef struct MouseEvent {
 	MouseEvent() {
@@ -131,6 +132,18 @@ typedef struct MouseEvent {
 
 }MOUSEEV, * PMOUSEEV;
 
+typedef struct file_info {
+	file_info() {
+		IsInvalid = FALSE;
+		IsDirectory = -1;
+		HasNext = TRUE;
+		memset(szFileName, 0, sizeof(szFileName));
+	}
+	char szFileName[256];
+	BOOL IsDirectory; //是否目录 0否1是 WENJIANJIA
+	BOOL IsInvalid; // 是否有效
+	BOOL HasNext;  //0无 1有
+}FILEINFO, * PFILEINFO;
 
 //#############################################################################################
 #pragma pack(pop)

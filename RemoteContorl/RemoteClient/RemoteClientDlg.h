@@ -12,6 +12,7 @@ class CRemoteClientDlg : public CDialogEx
 public:
 	CRemoteClientDlg(CWnd* pParent = nullptr);	// 标准构造函数
 
+
 // 对话框数据
 #ifdef AFX_DESIGN_TIME
 	enum { IDD = IDD_REMOTECLIENT_DIALOG };
@@ -21,8 +22,18 @@ public:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV 支持
 
 private:
-	int SendCommandPacket(int nCmd,BYTE* pData=NULL ,size_t nLength=0);
+	//1 查看分区
+	//2 查看指定目录下的文件 SendCommand返回值是命令号 返回负数为错误
+	//3 打开文件
+	//4 下载文件 
+	//5 鼠标操作
+	//6 屏幕监控
+	//7 锁定
+	//8 解锁
+	int SendCommandPacket(int nCmd, bool bAutoClose = true, BYTE* pData = NULL, size_t nLength = 0);
 
+	CString GetPath(HTREEITEM hTree);
+	void DeleteTreeChildrenItem(HTREEITEM hTree);
 
 // 实现
 protected:
@@ -41,4 +52,5 @@ public:
 	afx_msg void OnTvnSelchangedTreeDir(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnBnClickedBtnFileinfo();
 	CTreeCtrl m_Tree;
+	afx_msg void OnNMDblclkTreeDir(NMHDR* pNMHDR, LRESULT* pResult);
 };
