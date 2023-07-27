@@ -118,7 +118,7 @@ int DownloadFile() {
     FILE* pFile = NULL;
     errno_t err=fopen_s(&pFile,strPath.c_str(), "rb");   //上传上去
     if (err !=0) {
-        CPacket pack(4, (BYTE*)data, 8);   //空data发过去
+        CPacket pack(4, (BYTE*)data, 8);   //空data发过去 表示文件长度
         CServerSocket::getInstance()->Send(pack);
         return -1;
     }
@@ -126,6 +126,7 @@ int DownloadFile() {
         fseek(pFile, 0, SEEK_END);
         data = _ftelli64(pFile);
         CPacket head(4, (BYTE*)&data, 8); //拿到完整长度
+        CServerSocket::getInstance()->Send(head);
         fseek(pFile, 0, SEEK_SET);
 
         char buffer[1024] = "";
