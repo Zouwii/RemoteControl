@@ -26,15 +26,18 @@ private:
 	//2 查看指定目录下的文件 SendCommand返回值是命令号 返回负数为错误
 	//3 打开文件
 	//4 下载文件 
+	//9 删除文件
 	//5 鼠标操作
 	//6 屏幕监控
 	//7 锁定
 	//8 解锁
+	//1981 测试连接
 	int SendCommandPacket(int nCmd, bool bAutoClose = true, BYTE* pData = NULL, size_t nLength = 0);
 
 	CString GetPath(HTREEITEM hTree);
 	void DeleteTreeChildrenItem(HTREEITEM hTree);
 	void LoadFileInfo();
+	void loadFileCurrent();
 
 // 实现
 protected:

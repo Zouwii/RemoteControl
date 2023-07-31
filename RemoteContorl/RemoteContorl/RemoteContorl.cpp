@@ -332,10 +332,27 @@ int UnlockMachine() {
     return 0;
 }
 
+
+
 int TestConnect() {
     CPacket pack(1981, NULL, 0);
     bool ret=CServerSocket::getInstance()->Send(pack);
     TRACE("SERVER TESTCONNECT: Send ret= %d\r\n", ret);
+    return 0;
+}
+
+int DeleteLocalFile(){
+    std::string strPath;
+    CServerSocket::getInstance()->GetFilePath(strPath);
+    TCHAR sPath[MAX_PATH] = _T("");
+    //mbstowcs(sPath, strPath.c_str(), strPath.size());
+    MultiByteToWideChar(CP_ACP, 0, strPath.c_str(), strPath.size(), sPath,
+        sizeof(sPath) / sizeof(TCHAR));
+    DeleteFileA(strPath.c_str());
+
+    CPacket pack(9, NULL, 0);
+    bool ret = CServerSocket::getInstance()->Send(pack);
+    TRACE("Send ret= %d\r\n", ret);
     return 0;
 }
 
@@ -370,6 +387,9 @@ int ExecuteCommand(int nCmd)
     }
     case 8:
         ret = UnlockMachine();
+        break;
+    case 9:
+        ret = DeleteLocalFile();
         break;
     case 1981:
         ret = TestConnect();
