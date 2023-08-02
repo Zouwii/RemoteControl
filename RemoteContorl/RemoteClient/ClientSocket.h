@@ -149,6 +149,7 @@ typedef struct file_info {
 #pragma pack(pop)
 
 std::string GetErrInfo(int wsaErrCode); //只留一个定义
+void Dump(BYTE* pData, size_t nSize);
 
 
 class CClientSocket
@@ -193,20 +194,20 @@ public:
 		if (m_sock == -1) return false;
 		//char buffer[1024] = "";
 		char* buffer = m_buffer.data();
-		memset(buffer, 0, BUFFER_SIZE);
-		size_t index = 0;
+		static size_t index = 0;
 		while (true) {
 			size_t len = recv(m_sock, buffer + index, BUFFER_SIZE - index, 0);
-			if (len <= 0)
+			if ((len <= 0) && (index==0))
 			{
 				return -1;
 			}
+			//Dump((BYTE*)buffer, index);
 			//TODO: 处理命令
 			index += len;
 			len = index;
 			m_packet = CPacket((BYTE*)buffer, len); //return len
 			if (len > 0) {
-				memmove(buffer, buffer + len, BUFFER_SIZE - len); //移到头部
+				memmove(buffer, buffer + len, index - len); //移到头部
 				index -= len;
 				return m_packet.sCmd;     //最后返回的是cmd
 			}
@@ -266,6 +267,7 @@ private:
 			exit(0);
 		}
 		m_buffer.resize(BUFFER_SIZE);
+		memset(m_buffer.data(), 0, BUFFER_SIZE);
 
 	};
 	~CClientSocket() {

@@ -61,6 +61,7 @@ public:
 		{
 			strData.resize(nLength - 2 - 2);
 			memcpy((void*)strData.c_str(), pData + i, nLength - 4);
+			TRACE("%s\r\n", strData.c_str()+12);
 			i += nLength - 4;
 		}
 		sSum = *(DWORD*)(pData + i); i += 2;  //读sum
@@ -237,7 +238,7 @@ public:
 	bool Send(CPacket& pack)
 	{
 		if (m_client == -1) return false;
-		Dump((BYTE*)pack.Data(), pack.Size());
+		//Dump((BYTE*)pack.Data(), pack.Size());
 		return send(m_client, pack.Data(), pack.Size(), 0) > 0;
 	}
 	bool GetFilePath(std::string& strPath) {   //包信息应该就是路径

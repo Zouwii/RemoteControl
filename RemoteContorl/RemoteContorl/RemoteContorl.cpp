@@ -81,6 +81,7 @@ int MakeDirectoryInfo() {                  //指定目录下的文件和文件�
         OutputDebugString(_T("没有找到任何文件！"));
         return -3;
     }
+    int count = 0; //还有.和..
     do {
         FILEINFO finfo;
         finfo.IsDirectory = ((fdata.attrib & _A_SUBDIR) != 0);   //用这个去判断了是否目录的！！
@@ -91,8 +92,11 @@ int MakeDirectoryInfo() {                  //指定目录下的文件和文件�
         CPacket pack(2, (BYTE*)&finfo, sizeof(finfo));    //这样看是把finfo发出去了
         CServerSocket::getInstance()->Send(pack);   //TODO:返回值
 
+        count++;
+
         //lstFileInfos.push_back(finfo);
     } while (!_findnext(hfind, &fdata));
+    TRACE("server: count=%d\r\n", count);
     //发送信息到控制端
     FILEINFO finfo;
     finfo.HasNext = FALSE;    //此时szfilename=空
