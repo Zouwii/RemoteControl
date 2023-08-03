@@ -196,7 +196,7 @@ public:
 		char* buffer = m_buffer.data();
 		static size_t index = 0;
 		while (true) {
-			size_t len = recv(m_sock, buffer + index, BUFFER_SIZE - index, 0);
+			size_t len = recv(m_sock, buffer + index, BUFFER_SIZE - index, 0); //后面就收后面的部分 跟解包同步
 			if ((len <= 0) && (index==0))
 			{
 				return -1;
@@ -205,10 +205,12 @@ public:
 			//TODO: 处理命令
 			index += len;
 			len = index;
-			m_packet = CPacket((BYTE*)buffer, len); //return len
+			//TRACE("!!!!!解包  index:%d len:%d\n ", index, len);
+			m_packet = CPacket((BYTE*)buffer, len); //解包 一开始index和len都是 len会返回一个包的大小
 			if (len > 0) {
-				memmove(buffer, buffer + len, index - len); //移到头部
+				memmove(buffer, buffer + len, index - len); //移到头部  每次返回的时候会清空缓存区
 				index -= len;
+				//TRACE("!!!!!清理缓存  index:%d len:%d\n ", index,len);
 				return m_packet.sCmd;     //最后返回的是cmd
 			}
 		}
