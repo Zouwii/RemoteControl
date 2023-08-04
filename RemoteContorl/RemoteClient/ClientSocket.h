@@ -58,14 +58,15 @@ public:
 			nSize = 0;                        //包没有完全接收到
 			return;
 		}
-		sCmd = *(DWORD*)(pData + i); i += 2;
+		sCmd = *(WORD*)(pData + i); i += 2;
 		if (nLength > 4)                      //读包 包长为length-cmd（2）-sum（2）
 		{
 			strData.resize(nLength - 2 - 2);
 			memcpy((void*)strData.c_str(), pData + i, nLength - 4);
 			i += nLength - 4;
 		}
-		sSum = *(DWORD*)(pData + i); i += 2;  //读sum
+
+		sSum = *(WORD*)(pData + i); i += 2;  //读sum
 		WORD sum = 0;
 		for (size_t j = 0; j < strData.size(); j++)
 		{
@@ -188,7 +189,7 @@ public:
 	}
 
 
-#define BUFFER_SIZE 4096
+#define BUFFER_SIZE 40960000
 	int DealCommand()
 	{
 		if (m_sock == -1) return false;

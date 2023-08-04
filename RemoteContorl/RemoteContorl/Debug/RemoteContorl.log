@@ -3,9 +3,4 @@ E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ServerSocket.h(59,10): war
 E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ServerSocket.h(67,10): warning C4244: “=”: 从“DWORD”转换到“WORD”，可能丢失数据
 E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ServerSocket.h(188,8): warning C4101: “buffer”: 未引用的局部变量
 E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\RemoteContorl.cpp(284,23): warning C4244: “*=”: 从“double”转换到“LONG”，可能丢失数据
-  ServerSocket.cpp
-E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ServerSocket.h(59,10): warning C4244: “=”: 从“DWORD”转换到“WORD”，可能丢失数据
-E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ServerSocket.h(67,10): warning C4244: “=”: 从“DWORD”转换到“WORD”，可能丢失数据
-E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ServerSocket.h(188,8): warning C4101: “buffer”: 未引用的局部变量
-  正在生成代码...
   RemoteContorl.vcxproj -> E:\QGitProject\git-demo-1\RemoteContorl\Debug\RemoteContorl.exe

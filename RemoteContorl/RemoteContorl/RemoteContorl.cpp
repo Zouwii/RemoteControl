@@ -248,7 +248,7 @@ int SendScreen()
     int nWidth = GetDeviceCaps(hScreen, HORZRES);
     int nHeight = GetDeviceCaps(hScreen, VERTRES);
     screen.Create(nWidth, nHeight, nBitPerPixel);
-    BitBlt(screen.GetDC(), 0, 0, 1920, 1080, hScreen, 0, 0, SRCCOPY);
+    BitBlt(screen.GetDC(), 0, 0, 1920, 1080, hScreen, 0, 0, SRCCOPY); //dpi-for find
     ReleaseDC(NULL, hScreen);
 
     HGLOBAL hMem=GlobalAlloc(GMEM_MOVEABLE, 0);
@@ -441,7 +441,7 @@ int main()
                 TRACE("AcceptClient return true\r\n");
                 int ret=pserver->DealCommand(); //dealcommand返回sCmd
                 TRACE("DealCommand ret=%d\r\n", ret);
-                if (ret > 0)                //TODO:为什么等于0呢
+                if (ret > 0)                
                 {
                     ret=ExecuteCommand(pserver->GetPacket().sCmd);   //##目标 走进execute 执行1981-》TestConnect
 

@@ -24,6 +24,21 @@ public:
 	protected:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV 支持
 
+public:
+	bool isFull() const {
+		return m_isFull;
+	}
+	CImage& GetImage() {
+		return m_image;
+	}
+	void SetImageStatus(bool isFull = false) {
+		m_isFull = isFull;
+	}
+
+private:
+	CImage m_image;//缓存
+	bool m_isFull;//缓存是否有数据 true表示有缓存数据 false表示没有缓存数据
+
 private:
 	//1 查看分区
 	//2 查看指定目录下的文件 SendCommand返回值是命令号 返回负数为错误
@@ -41,8 +56,12 @@ private:
 	void DeleteTreeChildrenItem(HTREEITEM hTree);
 	void LoadFileInfo();
 	void loadFileCurrent();
+
+
 	static void threadEntryForDownFile(void* arg);
 	void threadDownFile();
+	static void threadEntryForWatchFile(void* arg); //静态函数不能使用this指针
+	void threadWatchFile();                         //成员函数可以使用this指针 所以做框架->转接
 
 // 实现
 protected:
@@ -73,4 +92,6 @@ public:
 
 	//
 	afx_msg LRESULT OnSendPacket(WPARAM wParam, LPARAM lParam); //定义自定义消息响应函数 2
+	afx_msg void OnBnClickedBtnStartWatch();
+	afx_msg void OnTimer(UINT_PTR nIDEvent);
 };
