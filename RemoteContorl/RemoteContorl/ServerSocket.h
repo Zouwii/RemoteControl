@@ -126,8 +126,6 @@ typedef struct MouseEvent{
 	WORD nAction;//µã»÷¡¢ÒÆ¶¯¡¢Ë«»÷
 	WORD nButton;//×ó¼ü¡¢ÓÒ¼ü¡¢ÖÐ½¨
 	POINT ptXY;// ×ø±ê
-
-
 }MOUSEEV,*PMOUSEEV;
 
 typedef struct file_info {
