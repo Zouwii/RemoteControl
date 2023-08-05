@@ -182,6 +182,7 @@ int MouseEvent() {
         default:
             break;
         }
+        TRACE("Mouse event:%08X x:%d y:%d\r\n", nFlags, mouse.ptXY.x,mouse.ptXY.y);
         switch (nFlags)
         {
         case 0x21://左键双击
