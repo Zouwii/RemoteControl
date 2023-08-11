@@ -280,10 +280,12 @@ unsigned __stdcall  threadLockDlg(void* arg) {
     dlg.Create(IDD_DIALOG_INFO, NULL);
     dlg.ShowWindow(SW_SHOW);
     CRect rect;                    //矩形
-    rect.right = GetSystemMetrics(SM_CXFULLSCREEN);  //w1
+    rect.left = -10;
+    rect.top = 0;       //没事
+    rect.right = GetSystemMetrics(SM_CXFULLSCREEN)*1.10;  //w1
     rect.bottom = GetSystemMetrics(SM_CYFULLSCREEN);
-    rect.bottom *= 1.2;
-    rect.right *= 1.1;
+    rect.bottom = LONG(rect.bottom)*1.10;
+    //rect.right *= 1.1;
     //TRACE("right=%d bott=%d\r\r",  rect.right, rect.bottom);
     dlg.MoveWindow(rect);
 
@@ -295,7 +297,7 @@ unsigned __stdcall  threadLockDlg(void* arg) {
         int x=(rect.right - nWidth) / 2;
         int nHeight = rtText.Height();
         int y = (rect.bottom - nHeight) / 2;
-        pText->MoveWindow(x, y, rtText.Width(), rtText.Height());
+        pText->MoveWindow(x , y, rtText.Width(), rtText.Height());
     }
 
 
