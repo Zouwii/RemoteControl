@@ -1,5 +1,4 @@
-﻿D:\VisualStudio\MSBuild\Microsoft\VC\v160\Microsoft.CppClean.targets(77,5): warning : 文件“e:\qgitproject\git-demo-1\remotecontorl\remoteclient\debug\remoteclient.ilk”正由另一进程使用，因此该进程无法访问此文件。
-  pch.cpp
+﻿  pch.cpp
   ClientSocket.cpp
   CWatchDialog.cpp
   RemoteClient.cpp
@@ -7,5 +6,4 @@
 E:\QGitProject\git-demo-1\RemoteContorl\RemoteClient\RemoteClientDlg.cpp(387,39): warning C4834: 放弃具有 "nodiscard" 属性的函数的返回值
   StatusDlg.cpp
   正在生成代码...
-  LINK : 没有找到 E:\QGitProject\git-demo-1\RemoteContorl\Debug\RemoteClient.exe 或上一个增量链接没有生成它；正在执行完全链接
   RemoteClient.vcxproj -> E:\QGitProject\git-demo-1\RemoteContorl\Debug\RemoteClient.exe
