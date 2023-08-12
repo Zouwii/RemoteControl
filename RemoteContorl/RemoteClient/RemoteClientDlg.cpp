@@ -240,8 +240,11 @@ void CRemoteClientDlg::OnBnClickedBtnFileinfo()
 		}
 		dr += drivers[i];
 	}
-	dr += ":";
-	m_Tree.InsertItem(dr.c_str(), TVI_ROOT, TVI_LAST);
+	if (dr.size() > 0) {
+		dr += ":";
+		HTREEITEM hTemp = m_Tree.InsertItem(dr.c_str(), TVI_ROOT, TVI_LAST);
+		m_Tree.InsertItem(NULL, hTemp, TVI_LAST);
+	}
 
 }
 

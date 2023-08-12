@@ -19,7 +19,7 @@ public:
 		}
 		sSum = 0;
 		for (size_t j = 0; j < strData.size(); j++)
-		{
+		{//地址最后要改成100 不然会死
 			sSum += BYTE(strData[j]) & 0xFF;
 		}
 	}
