@@ -540,8 +540,8 @@ void CRemoteClientDlg::OnRunFile()
 		AfxMessageBox(_T("打开文件执行失败！"));
 	}
 }
-
-LRESULT CRemoteClientDlg::OnSendPacket(WPARAM wParam, LPARAM lParam) //对应WM_SEND_PACKET
+//####################################!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+LRESULT CRemoteClientDlg::OnSendPacket(WPARAM wParam, LPARAM lParam) //对应WM_SEND_PACKET！！
 {//实现消息响应函数 4
 	int ret = 0;
 	int cmd = wParam >> 1;
