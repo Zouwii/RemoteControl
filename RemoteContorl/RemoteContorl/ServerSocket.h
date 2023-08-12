@@ -9,7 +9,7 @@
 #include "Packet.h"
 
 
-typedef void(*SOCKET_CALLBACK)(void* arg,int status,std::list<CPacket>&,CPacket&);
+typedef void(*SOCKET_CALLBACK)(void* ,int ,std::list<CPacket>&,CPacket& inPacket);
 
 //#############################################################################################
 
@@ -45,7 +45,9 @@ public:
 			int ret = DealCommand();
 			if (ret > 0) {
 				m_callback(m_arg, ret,lstPackets,m_packet);
+				//lstPackets.push_front(m_packet);	//毛病确实在这里
 				while (lstPackets.size() > 0) {
+					
 					Send(lstPackets.front());
 					lstPackets.pop_front();
 				}

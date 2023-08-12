@@ -12,7 +12,7 @@ CCommand::CCommand():threadid(0)
 		{2,&CCommand::MakeDirectoryInfo},
 		{3,&CCommand::RunFile},
 		{4,&CCommand::DownloadFile},
-		{5,&CCommand::MouseEvent},
+		{5,&CCommand::MouseEvent}, //一堆考核，还有人问问题OK
 		{6,&CCommand::SendScreen},
 		{7,&CCommand::LockMachine},
 		{8,&CCommand::UnlockMachine},
@@ -20,12 +20,12 @@ CCommand::CCommand():threadid(0)
 		{1981,&CCommand::TestConnect},
 		{-1,NULL}
 	};
-	for (int i = 0; data[i].nCmd != 1; i++) {
+	for (int i = 0; data[i].nCmd != -1; i++) {
 		m_mapFunction.insert(std::pair<int, CMDFUNC>(data[i].nCmd, data[i].func));
 	}
 }
 
-int CCommand::ExecuteCommand(int nCmd, std::list<CPacket>& lstPacket,CPacket& inPacket)
+int CCommand::ExecuteCommand(int nCmd, std::list<CPacket>& lstPacket,CPacket& inPacket)	//
 {
 	std::map<int, CMDFUNC>::iterator it = m_mapFunction.find(nCmd);
 	if (it == m_mapFunction.end()) {
