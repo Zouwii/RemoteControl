@@ -1,3 +1,10 @@
-﻿  RemoteClientDlg.cpp
+﻿  pch.cpp
+  ClientController.cpp
+  ClientSocket.cpp
+  CWatchDialog.cpp
+  RemoteClient.cpp
+  RemoteClientDlg.cpp
 E:\QGitProject\git-demo-1\RemoteContorl\RemoteClient\RemoteClientDlg.cpp(390,39): warning C4834: 放弃具有 "nodiscard" 属性的函数的返回值
+  StatusDlg.cpp
+  正在生成代码...
   RemoteClient.vcxproj -> E:\QGitProject\git-demo-1\RemoteContorl\Debug\RemoteClient.exe
