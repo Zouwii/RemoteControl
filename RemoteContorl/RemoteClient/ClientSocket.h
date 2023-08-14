@@ -194,11 +194,11 @@ public:
 	{
 		if (m_sock == -1) return false;
 		//char buffer[1024] = "";
-		char* buffer = m_buffer.data();
+		char* buffer = m_buffer.data(); //TODO:多线程发送命令时可能会冲突
 		static size_t index = 0;
 		while (true) {
 			size_t len = recv(m_sock, buffer + index, BUFFER_SIZE - index, 0); //后面就收后面的部分 跟解包同步
-			if ((len <= 0) && (index==0))
+			if (((int)len <= 0) && ((int)index==0))
 			{
 				return -1;
 			}
