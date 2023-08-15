@@ -94,7 +94,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <ProgramDataBaseFileName>$(IntDir)vc$(PlatformToolsetVersion)_tmp4.pdb</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName>$(IntDir)vc$(PlatformToolsetVersion)_tmp5.pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
