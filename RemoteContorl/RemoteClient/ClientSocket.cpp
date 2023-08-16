@@ -42,6 +42,32 @@ void Dump(BYTE* pData, size_t nSize)      //导出一下看看
 	OutputDebugStringA(strOut.c_str());
 }
 
+bool CClientSocket::SendPacket(const CPacket& pack,
+	std::list<CPacket>& lstPacks, bool isAutoClosed)
+{
+	if (m_sock == INVALID_SOCKET) {
+		/*	if (InitSocket() == false) return false;*/
+		_beginthread(&CClientSocket::threadEntry, 0, this);
+	}
+
+	auto pr = m_mapAck.insert(std::pair<HANDLE,
+		std::list<CPacket>>(pack.hEvent, lstPacks));
+
+	m_mapAutoClosed.insert(std::pair<HANDLE, bool>
+		(pack.hEvent, isAutoClosed));
+
+	m_lstSend.push_back(pack);
+	WaitForSingleObject(pack.hEvent, INFINITE);
+	std::map<HANDLE, std::list<CPacket>>::iterator it;
+	it = m_mapAck.find(pack.hEvent);
+	if (it != m_mapAck.end()) {
+		std::list<CPacket>::iterator i;
+		m_mapAck.erase(it);
+		return true;
+	}
+	return false;
+}
+
 void CClientSocket::threadEntry(void* arg)
 {
 	CClientSocket* thiz = (CClientSocket*)arg;
@@ -54,6 +80,7 @@ void CClientSocket::threadFunc()
 	strBuffer.resize(BUFFER_SIZE);
 	char* pBuffer = (char*)strBuffer.c_str();
 	int index = 0;
+	InitSocket();
 	while (m_sock != INVALID_SOCKET) {
 		if (m_lstSend.size() > 0) {
 			TRACE("lstSend: size %d\r\n", m_lstSend.size());
@@ -62,24 +89,36 @@ void CClientSocket::threadFunc()
 				TRACE("发送失败！\r\n");
 				continue;
 			}
-			auto pr = m_mapAck.insert(std::pair<HANDLE, std::list<CPacket>>(head.hEvent, std::list<CPacket>()));
+			std::map<HANDLE, std::list<CPacket>>::iterator it;
+			it = m_mapAck.find(head.hEvent);
+			std::map<HANDLE, bool>::iterator it0 = m_mapAutoClosed.find(head.hEvent);
 			
-			int length = recv(m_sock, pBuffer + index, BUFFER_SIZE - index, 0);
-			if (length > 0 || index > 0) {
-				index += length;
-				size_t size = (size_t)index;
-				CPacket pack((BYTE*)pBuffer, size); //和校验成功，size才会大于0
-				if (size > 0) {
-					//TODO:通知对应的时间
-					pack.hEvent = head.hEvent;
-					pr.first->second.push_back(pack);
-					SetEvent(head.hEvent);
+			do {
+				int length = recv(m_sock, pBuffer + index, BUFFER_SIZE - index, 0);
+				if (length > 0 || index > 0) {
+					index += length;
+					size_t size = (size_t)index;
+					CPacket pack((BYTE*)pBuffer, size); //和校验成功，size才会大于0
+					if (size > 0) {
+						//TODO:通知对应的时间
+						pack.hEvent = head.hEvent;
+						it->second.push_back(pack);
+						//SetEvent(head.hEvent);
+						memmove(pBuffer, pBuffer + size, index - size);//recv之后要移动包
+						index -= size;
+						if (it0->second) {
+							SetEvent(head.hEvent);
+						}
+					}
 				}
-			}
-			else if (length <= 0 && index <= 0) {
-				CloseSocket();
-			}
+				else if (length <= 0 && index <= 0) {
+					CloseSocket();
+					SetEvent(head.hEvent);//等到服务器关闭命令，再通知事情完成
+				}
+			} while (it0->second == false);
+
 			m_lstSend.pop_front();
+			InitSocket();
 		}
 	}
 	CloseSocket();

@@ -46,13 +46,15 @@ LRESULT CClientController::SendMessage(MSG msg)
 	MSGINFO info(msg);
 	PostThreadMessage(m_nThreadID, WM_SEND_MESSAGE,
 		(WPARAM)&msg, (LPARAM)&hEvent);
-	WaitForSingleObject(hEvent, -1);//无穷无尽去等
+	WaitForSingleObject(hEvent, INFINITE);//无穷无尽去等
+	CloseHandle(hEvent);
 	return info.result;
 }
 
 int CClientController::SendCommandPacket(int nCmd, bool bAutoClose,
 	BYTE* pData, size_t nLength, std::list<CPacket>* plstPacks)
 {
+	TRACE("cmd %d %s start %11d\r\n", nCmd,__FUNCTION__, GetTickCount64());
 	CClientSocket* pClient = CClientSocket::getInstance();
 	HANDLE hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 	//不应该直接发送，要丢到队列去
@@ -60,10 +62,13 @@ int CClientController::SendCommandPacket(int nCmd, bool bAutoClose,
 	if (plstPacks == NULL)
 		plstPacks = &lstPacks;
 	pClient->SendPacket(CPacket(nCmd, pData, nLength, hEvent),*plstPacks);
+
+	CloseHandle(hEvent);//回收事件句柄，防止资源耗尽
 	if (plstPacks->size() > 0) {
+		TRACE("%s start %11d\r\n", __FUNCTION__, GetTickCount64());
 		return plstPacks->front().sCmd;
 	}
-	
+	TRACE("%s start %d\r\n", __FUNCTION__, GetTickCount64());
 	return -1;
 }
 
@@ -112,8 +117,9 @@ void CClientController::threadWatchScreen()
 			int ret = SendCommandPacket(6,true,NULL,0,&lstPacks);
 			if (ret == 6)
 			{
-				if (CZHRTool::Bytes2Image(m_remoteDlg.GetImage(), lstPacks.front().strData) == 0) {
-					m_watchDlg.SetImageStatus(true);
+				if (CZHRTool::Bytes2Image(m_watchDlg.GetImage(), lstPacks.front().strData) == 0) {
+					m_watchDlg.SetImageStatus(true); //m_isFull->true
+					TRACE("成功设置图片\r\n");
 				}
 
 				else {

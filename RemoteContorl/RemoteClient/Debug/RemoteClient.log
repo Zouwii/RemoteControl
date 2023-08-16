@@ -1,6 +1,6 @@
 ﻿  CWatchDialog.cpp
   ClientController.cpp
-E:\QGitProject\git-demo-1\RemoteContorl\RemoteClient\ClientController.cpp(170,38): warning C4834: 放弃具有 "nodiscard" 属性的函数的返回值
+E:\QGitProject\git-demo-1\RemoteContorl\RemoteClient\ClientController.cpp(176,38): warning C4834: 放弃具有 "nodiscard" 属性的函数的返回值
   ClientSocket.cpp
   RemoteClient.cpp
   RemoteClientDlg.cpp
