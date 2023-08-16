@@ -205,14 +205,16 @@ void CRemoteClientDlg::OnTvnSelchangedTreeDir(NMHDR* pNMHDR, LRESULT* pResult)
 void CRemoteClientDlg::OnBnClickedBtnFileinfo()
 {
 	// TODO: 在此添加控件通知处理程序代码 
-	int ret = CClientController::getInstance()->SendCommandPacket(1);
-	if (ret == -1)
+	std::list<CPacket> lstPackets;
+	int ret = CClientController::getInstance()->
+		SendCommandPacket(1,true,NULL,0,&lstPackets);
+	if ((ret == -1)||(lstPackets.size()<=0))
 	{
 		AfxMessageBox(_T("命令处理失败"));
 		return;
 	}
-	CClientSocket* pClient = CClientSocket::getInstance();
-	std::string drivers = pClient->GetPacket().strData;
+	CPacket& head = lstPackets.front();
+	std::string drivers = head.strData;
 	std::string dr;
 	m_Tree.DeleteAllItems();
 
@@ -266,37 +268,27 @@ void CRemoteClientDlg::LoadFileInfo()
 	DeleteTreeChildrenItem(hTreeSelected);    //解决不停双击的问题
 	m_list.DeleteAllItems();
 	CString strPath = GetPath(hTreeSelected);
+	std::list<CPacket>lstPackets;
 	int ncmd = CClientController::getInstance()->SendCommandPacket(2,
-		false, (BYTE*)(LPCTSTR)strPath, strPath.GetLength());
-	PFILEINFO pInfo = (PFILEINFO)CClientSocket::getInstance()->GetPacket().strData.c_str();      //发一串PFILEINFO 的数据来
-
-	int Count = 0;
-	while (pInfo->HasNext) {               //名字为空 hasnext就会是空
-		//过滤
-		TRACE("[%s] is dir %d \r\n", pInfo->szFileName, pInfo->IsDirectory);
-		if (pInfo->IsDirectory) {
-			if (((CString)pInfo->szFileName == ".") || ((CString)pInfo->szFileName == ".."))
-			{
-				int cmd = CClientController::getInstance()->DealCommand();   //拿到了
-				TRACE("ack:%d\r\n", cmd);
-				if (cmd < 0) break;
-				pInfo = (PFILEINFO)CClientSocket::getInstance()->GetPacket().strData.c_str();
-				continue;
+		false, (BYTE*)(LPCTSTR)strPath, strPath.GetLength(),&lstPackets);
+	if (lstPackets.size() > 0) {
+		std::list<CPacket>::iterator it = lstPackets.begin();
+		for (; it != lstPackets.end(); it++) {
+			PFILEINFO pInfo = (PFILEINFO)(*it).strData.c_str();
+			if (pInfo->HasNext == FALSE) continue;
+			if (pInfo->IsDirectory) {
+				if (((CString)pInfo->szFileName == ".") || ((CString)pInfo->szFileName == ".."))
+				{
+					continue;
+				}
+				HTREEITEM hTemp = m_Tree.InsertItem(pInfo->szFileName, hTreeSelected, TVI_LAST);
+				m_Tree.InsertItem("", hTemp, TVI_LAST);
 			}
-			HTREEITEM hTemp = m_Tree.InsertItem(pInfo->szFileName, hTreeSelected, TVI_LAST);
-			m_Tree.InsertItem("", hTemp, TVI_LAST);
+			else {
+				m_list.InsertItem(0, pInfo->szFileName);
+			}
 		}
-		else {
-			m_list.InsertItem(0, pInfo->szFileName);
-		}
-		Count++;
-		int cmd = CClientController::getInstance()->DealCommand();   //拿到了
-		//TRACE("ack:%d\r\n", cmd);
-		if (cmd < 0) break;
-		pInfo = (PFILEINFO)CClientSocket::getInstance()->GetPacket().strData.c_str();
 	}
-	//CClientController::getInstance()->CloseSocket();
-	TRACE("Count=%d\r\n", Count);
 }
 
 void CRemoteClientDlg::loadFileCurrent()
