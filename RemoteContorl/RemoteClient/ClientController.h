@@ -45,19 +45,21 @@ public:
 	//7 锁定
 	//8 解锁
 	//1981 测试连接
-	//SendCommand返回值是命令号 返回负数为错误
-	int SendCommandPacket(
+	//SendCommand
+	//返回值是状态 true成功 false 失败
+	bool SendCommandPacket(
+		HWND hWnd, //数据包收到后需要应答的
 		int nCmd,
 		bool bAutoClose = true,
 		BYTE* pData = NULL,
 		size_t nLength = 0,
-		std::list<CPacket>* plstPacks=NULL);
+		WPARAM wParam=0);
 	int GetImage(CImage& image) {
 		//更新数据到缓存区
 		CClientSocket* pClient = CClientSocket::getInstance();
 		return CZHRTool::Bytes2Image(image, pClient->GetPacket().strData);
 	}
-
+	void DownloadEnd();
 	int DownFile(CString strPath);
 
 	void StartWatchScreen();

@@ -43,6 +43,7 @@ BEGIN_MESSAGE_MAP(CWatchDialog, CDialog)
 	ON_STN_CLICKED(IDC_WATCH, &CWatchDialog::OnStnClickedWatch)
 	ON_BN_CLICKED(IDC_BTN_LOCK, &CWatchDialog::OnBnClickedBtnLock)
 	ON_BN_CLICKED(IDC_BTN_UNLOCK, &CWatchDialog::OnBnClickedBtnUnlock)
+	ON_MESSAGE(WM_SEND_PACK_ACK, CWatchDialog::OnSendPacketAck)
 END_MESSAGE_MAP()
 
 
@@ -63,8 +64,9 @@ CPoint CWatchDialog::UserPoint2RemoteScreenPoint(CPoint& point, bool isScreen)
 BOOL CWatchDialog::OnInitDialog()
 {
 	CDialog::OnInitDialog();
+	m_isFull = false;
 	// TODO:  在此添加额外的初始化
-	SetTimer(0, 50, NULL); //50ms一次
+	//SetTimer(0, 50, NULL); //50ms一次
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // 异常: OCX 属性页应返回 FALSE
 }
@@ -72,29 +74,71 @@ BOOL CWatchDialog::OnInitDialog()
 
 void CWatchDialog::OnTimer(UINT_PTR nIDEvent)
 {
-	if (nIDEvent == 0)
-	{
-		CClientController* pParent = (CClientController*)GetParent();
-		if (m_isFull) {
-			CRect rect;
-			m_picture.GetWindowRect(rect);
-			m_nObjWidth = m_image.GetWidth();
-			m_nObjHeight = m_image.GetHeight();
-			
-			//pParant->GetImage().BitBlt(m_picture.GetDC()->GetSafeHdc(), 0, 0, SRCCOPY);
-			m_image.StretchBlt(m_picture.GetDC()->GetSafeHdc(),   //缩放
-				0, 0, rect.Width(),rect.Height(),SRCCOPY);
-			m_picture.InvalidateRect(NULL); //重绘
-			m_image.Destroy();
-			m_isFull = false;
-			TRACE("更新图片完成 %d %d\r\n", m_nObjHeight, m_nObjWidth);
-		}
-	}
+	//if (nIDEvent == 0)
+	//{
+	//	CClientController* pParent = (CClientController*)GetParent();
+	//	if (m_isFull) {
+	//		CRect rect;
+	//		m_picture.GetWindowRect(rect);
+	//		m_nObjWidth = m_image.GetWidth();
+	//		m_nObjHeight = m_image.GetHeight();
+	//		
+	//		//pParant->GetImage().BitBlt(m_picture.GetDC()->GetSafeHdc(), 0, 0, SRCCOPY);
+	//		m_image.StretchBlt(m_picture.GetDC()->GetSafeHdc(),   //缩放
+	//			0, 0, rect.Width(),rect.Height(),SRCCOPY);
+	//		m_picture.InvalidateRect(NULL); //重绘
+	//		m_image.Destroy();
+	//		m_isFull = false;
+	//		TRACE("更新图片完成 %d %d\r\n", m_nObjHeight, m_nObjWidth);
+	//	}
+     //}
 	CDialog::OnTimer(nIDEvent);
 }
 
 //################################################################
 
+
+LRESULT CWatchDialog::OnSendPacketAck(WPARAM wParam, LPARAM lParam)
+{
+	if ((lParam == -1)||(lParam==-2)) {
+	//todo:错误处理
+	}
+	else if (lParam == 1) {
+	//对方关闭套接字
+	}
+	else  {
+		CPacket* pPacket = (CPacket*)wParam;
+		if (pPacket != NULL) {
+			switch (pPacket->sCmd) {
+			case 6:
+			{
+				if (m_isFull) {
+					CZHRTool::Bytes2Image(m_image, pPacket->strData);
+					CRect rect;
+					m_picture.GetWindowRect(rect);
+					m_nObjWidth = m_image.GetWidth();
+					m_nObjHeight = m_image.GetHeight();
+
+					//pParant->GetImage().BitBlt(m_picture.GetDC()->GetSafeHdc(), 0, 0, SRCCOPY);
+					m_image.StretchBlt(m_picture.GetDC()->GetSafeHdc(),   //缩放
+						0, 0, rect.Width(), rect.Height(), SRCCOPY);
+					m_picture.InvalidateRect(NULL); //重绘
+					m_image.Destroy();
+					m_isFull = false;
+					TRACE("更新图片完成 %d %d\r\n", m_nObjHeight, m_nObjWidth);
+				}
+				break;
+			}
+			case 5:
+			case 7:
+			case 8:
+			default:
+				break;
+			}
+		}
+	}
+	return 0;
+}
 
 void CWatchDialog::OnLButtonDblClk(UINT nFlags, CPoint point)
 {
@@ -107,7 +151,7 @@ void CWatchDialog::OnLButtonDblClk(UINT nFlags, CPoint point)
 		event.nButton = 0;//左键
 		event.nAction = 2;//双击
 		CClientController::getInstance()->
-			SendCommandPacket(5, true,(BYTE*) &event, sizeof(event));
+			SendCommandPacket(GetSafeHwnd(),5, true,(BYTE*) &event, sizeof(event));
 		
 	}
 	CDialog::OnLButtonDblClk(nFlags, point);
@@ -126,7 +170,7 @@ void CWatchDialog::OnLButtonDown(UINT nFlags, CPoint point)
 		event.nButton = 0;//左键
 		event.nAction = 2;//按下
 		CClientController::getInstance()->
-			SendCommandPacket(5, true, (BYTE*)&event, sizeof(event));
+			SendCommandPacket(GetSafeHwnd(), 5, true, (BYTE*)&event, sizeof(event));
 	}
 	CDialog::OnLButtonDown(nFlags, point);
 }
@@ -142,7 +186,7 @@ void CWatchDialog::OnLButtonUp(UINT nFlags, CPoint point)
 		event.nButton = 0;//左键
 		event.nAction = 3;//弹起
 		CClientController::getInstance()->
-			SendCommandPacket(5, true, (BYTE*)&event, sizeof(event));
+			SendCommandPacket(GetSafeHwnd(), 5, true, (BYTE*)&event, sizeof(event));
 	}
 	CDialog::OnLButtonUp(nFlags, point);
 }
@@ -159,7 +203,7 @@ void CWatchDialog::OnRButtonDblClk(UINT nFlags, CPoint point)
 		event.nButton = 1;//右键
 		event.nAction = 1;//双击
 		CClientController::getInstance()->
-			SendCommandPacket(5, true, (BYTE*)&event, sizeof(event));
+			SendCommandPacket(GetSafeHwnd(), 5, true, (BYTE*)&event, sizeof(event));
 	}
 	CDialog::OnRButtonDblClk(nFlags, point);
 }
@@ -175,7 +219,7 @@ void CWatchDialog::OnRButtonDown(UINT nFlags, CPoint point)
 		event.nButton = 1;//右键
 		event.nAction = 2;//按下 
 		CClientController::getInstance()->
-			SendCommandPacket(5, true, (BYTE*)&event, sizeof(event));
+			SendCommandPacket(GetSafeHwnd(), 5, true, (BYTE*)&event, sizeof(event));
 	}
 	CDialog::OnRButtonDown(nFlags, point);
 }
@@ -191,7 +235,7 @@ void CWatchDialog::OnRButtonUp(UINT nFlags, CPoint point)
 		event.nButton = 1;//右键
 		event.nAction = 3;//弹起
 		CClientController::getInstance()->
-			SendCommandPacket(5, true, (BYTE*)&event, sizeof(event));
+			SendCommandPacket(GetSafeHwnd(), 5, true, (BYTE*)&event, sizeof(event));
 	}
 	CDialog::OnRButtonUp(nFlags, point);
 }
@@ -207,7 +251,7 @@ void CWatchDialog::OnMouseMove(UINT nFlags, CPoint point)
 		event.nButton = 8;//没有
 		event.nAction = 0;//双击
 		CClientController::getInstance()->
-			SendCommandPacket(5, true, (BYTE*)&event, sizeof(event));
+			SendCommandPacket(GetSafeHwnd(), 5, true, (BYTE*)&event, sizeof(event));
 	}
 	CDialog::OnMouseMove(nFlags, point);
 }
@@ -226,7 +270,7 @@ void CWatchDialog::OnStnClickedWatch()  //按下
 		event.nButton = 0;//左键
 		event.nAction = 0;//单击
 		CClientController::getInstance()->
-			SendCommandPacket(5, true, (BYTE*)&event, sizeof(event));
+			SendCommandPacket(GetSafeHwnd(), 5, true, (BYTE*)&event, sizeof(event));
 	}
 }
 
@@ -243,7 +287,7 @@ void CWatchDialog::OnBnClickedBtnLock()
 {
 	// TODO: 在此添加控件通知处理程序代码
 	CClientController::getInstance()->
-		SendCommandPacket(7);
+		SendCommandPacket(GetSafeHwnd(), 7);
 }
 
 
@@ -251,5 +295,5 @@ void CWatchDialog::OnBnClickedBtnUnlock()
 {
 	// TODO: 在此添加控件通知处理程序代码
 	CClientController::getInstance()->
-		SendCommandPacket(8);
+		SendCommandPacket(GetSafeHwnd(), 8);
 }
