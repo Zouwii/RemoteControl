@@ -97,6 +97,18 @@ bool CClientSocket::SendPacket(const CPacket& pack,
 	return false;
 }
 
+void CClientSocket::threadFunc2()
+{
+	MSG msg;
+	while (::GetMessage(&msg, NULL, 0, 0)) {
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+		if (m_mapFunc.find(msg.message) != m_mapFunc.end()) {
+			(this->*m_mapFunc[msg.message])(msg.message, msg.wParam, msg.lParam);//相当于MSGFUNC(参数)
+		}
+	}
+}
+
 void CClientSocket::threadEntry(void* arg)
 {
 	CClientSocket* thiz = (CClientSocket*)arg;
@@ -146,13 +158,20 @@ void CClientSocket::threadFunc()
 					else if (length <= 0 && index <= 0) {
 						CloseSocket();
 						SetEvent(head.hEvent);//等到服务器关闭命令，再通知事情完成
-						m_mapAutoClosed.erase(it0);
+						if (it0 != m_mapAutoClosed.end())
+						{
+							TRACE("Set Event %d %d\r\n", head.sCmd, it0->second);
+						}
+						else {
+							TRACE("异常情况,没有对应pair\r\n");
+						}
 						break;
 					}
 				} while (it0->second == false);
 			}
 			m_lock.lock();
 			m_lstSend.pop_front(); //删除头部
+			m_mapAutoClosed.erase(head.hEvent);
 			m_lock.unlock();
 			if (InitSocket() == false) {
 				InitSocket();
@@ -171,4 +190,21 @@ bool CClientSocket::Send(const CPacket& pack)
 	pack.Data(strOut);
 	//pack.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 	return send(m_sock, strOut.c_str(), strOut.size(), 0) > 0;
+}
+
+void CClientSocket::SendPack(UINT nMsg, WPARAM wParam, LPARAM lParam)
+{
+	if (InitSocket() == true)
+	{
+		int ret = send(m_sock, (char*)wParam, (int)lParam, 0);
+		if (ret > 0) {
+
+		}
+		else {
+			CloseSocket();
+		}
+	}
+	else {
+
+	}
 }

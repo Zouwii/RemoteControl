@@ -13,6 +13,9 @@
 #pragma pack(push)
 #pragma pack(1)
 
+
+#define WM_SEND_PACK (WM_USER+1)
+
 class CPacket
 {
 public:
@@ -237,6 +240,8 @@ public:
 	}
 
 private:
+	typedef void(CClientSocket::*MSGFUNC)(UINT nMsg, WPARAM wParam, LPARAM lParam);
+	std::map<UINT, MSGFUNC>m_mapFunc;
 	HANDLE m_hThread;
 	std::mutex m_lock;
 	bool m_bAutoClose;
@@ -251,10 +256,24 @@ private:
 	CClientSocket& operator=(const CClientSocket& ss) {}
 	CClientSocket(const CClientSocket& ss) 
 	{
+		m_hThread = INVALID_HANDLE_VALUE;
 		m_bAutoClose = ss.m_bAutoClose;
 		m_sock = ss.m_sock;
 		m_nIP = ss.m_nIP;
 		m_nPort = ss.m_nPort;
+		struct {
+			UINT message;
+			MSGFUNC func;
+		}funcs[] = {
+			{WM_SEND_PACK,&CClientSocket::SendPack},//绑定
+			{0,NULL}
+		};
+		for (int i = 0; funcs[i].message != 0; i++) {
+			if (m_mapFunc.insert(std::pair<UINT, MSGFUNC>
+				(funcs[i].message, funcs[i].func)).second == false) {
+				TRACE("插入失败，消息\r\n");
+			}
+		}
 	}
 
 	CClientSocket():
@@ -276,6 +295,7 @@ private:
 	};
 	static void threadEntry(void* arg);
 	void threadFunc();
+	void threadFunc2();
 	BOOL InitSockEnv() {
 		WSADATA data;
 		if (WSAStartup(MAKEWORD(1, 1), &data) != 0)//TODO: 返回值处理
@@ -300,6 +320,11 @@ private:
 		return send(m_sock, pData, nSize, 0) > 0;
 	}
 	bool Send(const CPacket& pack);
+
+	void SendPack(UINT nMsg, WPARAM wParam, LPARAM lParam);//缓冲区的值和长度
+
+
+
 
 
 	static CClientSocket* m_instance;  //静态=全局
