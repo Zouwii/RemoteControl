@@ -70,6 +70,7 @@ public:
 		{
 			strData.resize(nLength - 2 - 2);
 			memcpy((void*)strData.c_str(), pData + i, nLength - 4);
+			TRACE("%s\r\n", strData.c_str() + 12);
 			i += nLength - 4;
 		}
 

@@ -61,6 +61,9 @@ bool CClientController::SendCommandPacket(HWND hWnd, int nCmd, bool bAutoClose, 
 
 void CClientController::DownloadEnd()
 {
+	m_statusDlg.ShowWindow(SW_HIDE);
+	m_remoteDlg.EndWaitCursor();
+	m_remoteDlg.MessageBox(_T("下载完成！"), _T("完成"));
 }
 
 int CClientController::DownFile(CString strPath)
@@ -169,17 +172,18 @@ void CClientController::threadDownloadFile()
 				TRACE("传输失败 ret=%d\r\n", ret);
 				break;
 			}
-			pClient->GetPacket().strData.c_str();
+			//pClient->GetPacket().strData.c_str();
 			fwrite(pClient->GetPacket().strData.c_str(), 1, pClient->GetPacket().strData.size(), pFile);
 			nCount += pClient->GetPacket().strData.size();
 		}
 
 	} while (false);
-	fclose(pFile);
-	pClient->CloseSocket();
-	m_statusDlg.ShowWindow(SW_HIDE);
-	m_remoteDlg.EndWaitCursor();
-	m_remoteDlg.MessageBox(_T("下载完成！"), _T("完成"));
+	//fclose(pFile);
+	//pClient->CloseSocket();
+	//m_statusDlg.ShowWindow(SW_HIDE);
+	//m_remoteDlg.EndWaitCursor();
+	//m_remoteDlg.MessageBox(_T("下载完成！"), _T("完成"));
+	//m_remoteDlg.LoadFileInfo();
 }
 
 void CClientController::threadDownloadEntry(void* arg)

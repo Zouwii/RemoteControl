@@ -208,7 +208,7 @@ void CRemoteClientDlg::OnBnClickedBtnFileinfo()
 	// TODO: 在此添加控件通知处理程序代码 
 	std::list<CPacket> lstPackets;
 	int ret = CClientController::getInstance()->
-		SendCommandPacket(GetSafeHwnd(), 1,true,NULL,0);
+		SendCommandPacket(GetSafeHwnd(), 1, true, NULL, 0);
 	if (ret == 0)
 	{
 		AfxMessageBox(_T("命令处理失败"));
@@ -247,28 +247,9 @@ void CRemoteClientDlg::LoadFileInfo()
 	DeleteTreeChildrenItem(hTreeSelected);    //解决不停双击的问题
 	m_list.DeleteAllItems();
 	CString strPath = GetPath(hTreeSelected);
-	std::list<CPacket>lstPackets;
-	int ncmd = CClientController::getInstance()->SendCommandPacket(GetSafeHwnd(), 2,
-		false, (BYTE*)(LPCTSTR)strPath, strPath.GetLength(),(WPARAM)hTreeSelected);
-	if (lstPackets.size() > 0) {
-		TRACE("lasPackets.size=%d\r\n", lstPackets.size());
-		std::list<CPacket>::iterator it = lstPackets.begin();
-		for (; it != lstPackets.end(); it++) {
-			PFILEINFO pInfo = (PFILEINFO)(*it).strData.c_str();
-			if (pInfo->HasNext == FALSE) continue;
-			if (pInfo->IsDirectory) {
-				if (((CString)pInfo->szFileName == ".") || ((CString)pInfo->szFileName == ".."))
-				{
-					continue;
-				}
-				HTREEITEM hTemp = m_Tree.InsertItem(pInfo->szFileName, hTreeSelected, TVI_LAST);
-				m_Tree.InsertItem("", hTemp, TVI_LAST);
-			}
-			else {
-				m_list.InsertItem(0, pInfo->szFileName);
-			}
-		}
-	}
+	TRACE("hTreeSelected %08X\r\n", hTreeSelected);
+	CClientController::getInstance()->SendCommandPacket(GetSafeHwnd(), 2,
+		false, (BYTE*)(LPCTSTR)strPath, strPath.GetLength(), (WPARAM)hTreeSelected);
 }
 
 void CRemoteClientDlg::loadFileCurrent()
@@ -342,12 +323,12 @@ void CRemoteClientDlg::OnDownloadFile()
 	CString strFile = m_list.GetItemText(nListSelected, 0);
 	HTREEITEM hSelected = m_Tree.GetSelectedItem();
 	strFile = GetPath(hSelected) + strFile;
-	int ret=CClientController::getInstance()->DownFile(strFile);
+	int ret = CClientController::getInstance()->DownFile(strFile);
 	if (ret != 0) {
 		MessageBox(_T("下载失败！"));
 		TRACE("下载失败 %d", ret);
 	}
-	
+
 }
 
 
@@ -434,7 +415,8 @@ LRESULT CRemoteClientDlg::OnSendPacketAck(WPARAM wParam, LPARAM lParam)
 		if (wParam != NULL) {
 			CPacket head = *(CPacket*)wParam;
 			delete (CPacket*)wParam;
-			switch (head.sCmd) {
+			switch (head.sCmd)
+			{
 			case 1: //获取驱动信息
 			{
 				std::string drivers = head.strData;
@@ -458,30 +440,33 @@ LRESULT CRemoteClientDlg::OnSendPacketAck(WPARAM wParam, LPARAM lParam)
 					m_Tree.InsertItem(NULL, hTemp, TVI_LAST);
 				}
 			}
-				break;
+			break;
 			case 2://获取文件信息
 			{
 				PFILEINFO pInfo = (PFILEINFO)head.strData.c_str();
+				TRACE("hasnext %d isdirectory %d %s\r\n", pInfo->HasNext, pInfo->IsDirectory, pInfo->szFileName);
 				if (pInfo->HasNext == FALSE)break;
 				if (pInfo->IsDirectory) {
 					if (((CString)pInfo->szFileName == ".") || ((CString)pInfo->szFileName == ".."))
 					{
 						break;
 					}
-					HTREEITEM hTemp = m_Tree.InsertItem(pInfo->szFileName, (HTREEITEM)lParam, TVI_LAST);
+					TRACE("hselected %08X %08X\r\n", lParam, m_Tree.GetSelectedItem());
+					HTREEITEM hTemp = m_Tree.InsertItem(pInfo->szFileName, (HTREEITEM)lParam);
 					m_Tree.InsertItem("", hTemp, TVI_LAST);
+					m_Tree.Expand((HTREEITEM)lParam, TVE_EXPAND);
 				}
 				else {
 					m_list.InsertItem(0, pInfo->szFileName);
 				}
 			}
-				break;
+			break;
 			case 3:
 				TRACE("run file done! \r\n");
 				break;
 			case 4:
 			{
-				static LONGLONG length = 0,index=0;
+				static LONGLONG length = 0, index = 0;
 				if (length == 0) {
 					length = *(long long*)head.strData.c_str();
 					if (length == 0) {
@@ -489,7 +474,7 @@ LRESULT CRemoteClientDlg::OnSendPacketAck(WPARAM wParam, LPARAM lParam)
 						CClientController::getInstance()->DownloadEnd();
 					}
 				}
-				else if (length > 0 && (index > length)) {
+				else if (length > 0 && (index >= length)) {
 					fclose((FILE*)lParam);
 					length = 0;
 					index = 0;
@@ -499,9 +484,15 @@ LRESULT CRemoteClientDlg::OnSendPacketAck(WPARAM wParam, LPARAM lParam)
 					FILE* pFile = (FILE*)lParam;
 					fwrite(head.strData.c_str(), 1, head.strData.size(), pFile);
 					index += head.strData.size();
+					if (index >= length) {
+						fclose((FILE*)lParam);
+						length = 0;
+						index = 0;
+						CClientController::getInstance()->DownloadEnd();
+					}
 				}
 			}
-				break;
+			break;
 			case 9:
 				TRACE("delete file done! \r\n");
 				break;
@@ -514,7 +505,7 @@ LRESULT CRemoteClientDlg::OnSendPacketAck(WPARAM wParam, LPARAM lParam)
 			}
 		}
 	}
-	
+
 	return 0;
 }
 
