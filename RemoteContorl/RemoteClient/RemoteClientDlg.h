@@ -32,9 +32,14 @@ private:
 	bool m_isClosed;//监视是否关闭
 
 private:
+	void DealCommand(WORD nCmd,const std::string& strData, LPARAM lParam);
+	void InitUIData();
+	void Str2Tree(const std::string& drivers, CTreeCtrl& tree);
 	CString GetPath(HTREEITEM hTree);
 	void DeleteTreeChildrenItem(HTREEITEM hTree);
 	void loadFileCurrent();
+	void UpdateDownloadFile(const std::string& strData, FILE* pFile);
+	void UpdateFileInfo(const FILEINFO& finfo,HTREEITEM hParent);
 
 
 

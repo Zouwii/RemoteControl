@@ -340,8 +340,17 @@ protected:
         //mbstowcs(sPath, strPath.c_str(), strPath.size());
         MultiByteToWideChar(CP_ACP, 0, strPath.c_str(), strPath.size(), sPath,
             sizeof(sPath) / sizeof(TCHAR));
-        DeleteFileA(strPath.c_str());
-
+        if (!SetFileAttributes(sPath, FILE_ATTRIBUTE_NORMAL)) {
+            std::cerr << "无法修改文件属性：" << GetLastError() << std::endl;
+            return 1;
+        }
+        int ret = DeleteFile(sPath);
+        Sleep(1);
+        if (ret==NULL) {
+            DWORD  ERRON = GetLastError();
+            printf("%d", ERRON);
+        }
+        
         lstPacket.push_back(CPacket(9, NULL, 0));
         return 0;
     }
