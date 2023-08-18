@@ -55,7 +55,8 @@ bool CClientController::SendCommandPacket(HWND hWnd,int nCmd, bool bAutoClose,BY
 {
 	TRACE("cmd %d %s start %11d\r\n", nCmd,__FUNCTION__, GetTickCount64());
 	CClientSocket* pClient = CClientSocket::getInstance();
-	return	pClient->SendPacket(hWnd,CPacket(nCmd, pData, nLength),bAutoClose,wParam);
+	bool ret=pClient->SendPacket(hWnd,CPacket(nCmd, pData, nLength),bAutoClose,wParam);
+	return ret;
 }
 
 void CClientController::DownloadEnd()

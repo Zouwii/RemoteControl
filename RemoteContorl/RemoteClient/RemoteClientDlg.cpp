@@ -125,7 +125,7 @@ BOOL CRemoteClientDlg::OnInitDialog()
 
 	// TODO: 在此添加额外的初始化代码
 	UpdateData();
-	m_server_address = 0x0A631B53; //172.20.10.4
+	m_server_address = 0xC0A8006C; //172.20.10.4
 	m_nPort = _T("9527");
 	CClientController* pController =
 		CClientController::getInstance();
@@ -431,10 +431,10 @@ LRESULT CRemoteClientDlg::OnSendPacketAck(WPARAM wParam, LPARAM lParam)
 		//对方关闭套接字
 	}
 	else {
-		CPacket* pPacket = (CPacket*)wParam;
-		if (pPacket != NULL) {
-			CPacket& head = *pPacket;
-			switch (pPacket->sCmd) {
+		if (wParam != NULL) {
+			CPacket head = *(CPacket*)wParam;
+			delete (CPacket*)wParam;
+			switch (head.sCmd) {
 			case 1: //获取驱动信息
 			{
 				std::string drivers = head.strData;
