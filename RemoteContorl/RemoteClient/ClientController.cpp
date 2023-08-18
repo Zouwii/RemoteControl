@@ -51,11 +51,11 @@ LRESULT CClientController::SendMessage(MSG msg)
 	return info.result;
 }
 
-bool CClientController::SendCommandPacket(HWND hWnd,int nCmd, bool bAutoClose,BYTE* pData, size_t nLength,WPARAM wParam)
+bool CClientController::SendCommandPacket(HWND hWnd, int nCmd, bool bAutoClose, BYTE* pData, size_t nLength, WPARAM wParam)
 {
-	TRACE("cmd %d %s start %11d\r\n", nCmd,__FUNCTION__, GetTickCount64());
+	TRACE("cmd %d %s start %11d\r\n", nCmd, __FUNCTION__, GetTickCount64());
 	CClientSocket* pClient = CClientSocket::getInstance();
-	bool ret=pClient->SendPacket(hWnd,CPacket(nCmd, pData, nLength),bAutoClose,wParam);
+	bool ret = pClient->SendPacket(hWnd, CPacket(nCmd, pData, nLength), bAutoClose, wParam);
 	return ret;
 }
 
@@ -106,22 +106,22 @@ void CClientController::StartWatchScreen()
 void CClientController::threadWatchScreen()
 {
 	Sleep(50);
+	ULONGLONG nTick=GetTickCount64();
 	while (!m_isClosed) { //==while(true)
-		if (m_watchDlg.isFull()==false) {
-			std::list<CPacket>lstPacks;
-			int ret = SendCommandPacket(m_watchDlg.GetSafeHwnd(), 6,true,NULL,0);
+		if (m_watchDlg.isFull() == false) {
+			if (GetTickCount64() - nTick < 200) {
+				Sleep(50 - DWORD(GetTickCount64() - nTick));
+			}
+			nTick = GetTickCount64();
+			int ret = SendCommandPacket(m_watchDlg.GetSafeHwnd(), 6, true, NULL, 0);
 			//TODO:添加消息响应函数 WM_SEND_PACK_ACK
 			//控制发送频率
-			if (ret == 6)
+			if (ret == 1)
 			{
-				if (CZHRTool::Bytes2Image(m_watchDlg.GetImage(), lstPacks.front().strData) == 0) {
-					m_watchDlg.SetImageStatus(true); //m_isFull->true
-					TRACE("成功设置图片\r\n");
-				}
-
-				else {
-					TRACE("获取图片失败! %d\r\n", ret);
-				}
+				//TRACE("成功图片! %d\r\n", ret);
+			}
+			else {
+				TRACE("获取图片失败! %d\r\n", ret);
 			}
 		}
 		else {
@@ -148,7 +148,7 @@ void CClientController::threadDownloadFile()
 	}
 	CClientSocket* pClient = CClientSocket::getInstance();
 	do {
-		int ret = SendCommandPacket(m_remoteDlg ,4, false, (BYTE*)(LPCSTR)m_strRemote,m_strRemote.GetLength(),(WPARAM)pFile);
+		int ret = SendCommandPacket(m_remoteDlg, 4, false, (BYTE*)(LPCSTR)m_strRemote, m_strRemote.GetLength(), (WPARAM)pFile);
 		if (ret < 0)
 		{
 			AfxMessageBox(_T("执行下载命令失败！"));

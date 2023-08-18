@@ -16,8 +16,8 @@ CWatchDialog::CWatchDialog(CWnd* pParent /*=nullptr*/)
 	: CDialog(IDD_DLG_WATCH, pParent)
 {
 	m_isFull = false;
-	m_nObjWidth=-1;
-	m_nObjHeight=-1;
+	m_nObjWidth = -1;
+	m_nObjHeight = -1;
 }
 
 CWatchDialog::~CWatchDialog()
@@ -53,12 +53,12 @@ END_MESSAGE_MAP()
 CPoint CWatchDialog::UserPoint2RemoteScreenPoint(CPoint& point, bool isScreen)
 {//800 450
 	CRect clientRect;
-	if(!isScreen)ClientToScreen(&point);  //转换为屏幕坐标
+	if (!isScreen)ClientToScreen(&point);  //转换为屏幕坐标
 	m_picture.ScreenToClient(&point); //全局坐标到客户区域坐标
 	//本地坐标到远程坐标
 	m_picture.GetWindowRect(clientRect);
 	return CPoint(point.x * m_nObjWidth / clientRect.Width(),
-				  point.y * m_nObjHeight/ clientRect.Height());
+		point.y * m_nObjHeight / clientRect.Height());
 }
 
 BOOL CWatchDialog::OnInitDialog()
@@ -91,7 +91,7 @@ void CWatchDialog::OnTimer(UINT_PTR nIDEvent)
 	//		m_isFull = false;
 	//		TRACE("更新图片完成 %d %d\r\n", m_nObjHeight, m_nObjWidth);
 	//	}
-     //}
+	 //}
 	CDialog::OnTimer(nIDEvent);
 }
 
@@ -100,36 +100,38 @@ void CWatchDialog::OnTimer(UINT_PTR nIDEvent)
 
 LRESULT CWatchDialog::OnSendPacketAck(WPARAM wParam, LPARAM lParam)
 {
-	if ((lParam == -1)||(lParam==-2)) {
-	//todo:错误处理
+	if ((lParam == -1) || (lParam == -2)) {
+		//todo:错误处理
 	}
 	else if (lParam == 1) {
-	//对方关闭套接字
+		//对方关闭套接字
 	}
-	else  {
+	else {
 		CPacket* pPacket = (CPacket*)wParam;
 		if (pPacket != NULL) {
-			switch (pPacket->sCmd) {
+			CPacket head = *(CPacket*)wParam;
+			delete (CPacket*)wParam;
+			switch (head.sCmd) {
 			case 6:
 			{
-				if (m_isFull) {
-					CZHRTool::Bytes2Image(m_image, pPacket->strData);
-					CRect rect;
-					m_picture.GetWindowRect(rect);
-					m_nObjWidth = m_image.GetWidth();
-					m_nObjHeight = m_image.GetHeight();
+				CZHRTool::Bytes2Image(m_image, head.strData);
+				CRect rect;
+				m_picture.GetWindowRect(rect);
+				m_nObjWidth = m_image.GetWidth();
+				m_nObjHeight = m_image.GetHeight();
 
-					//pParant->GetImage().BitBlt(m_picture.GetDC()->GetSafeHdc(), 0, 0, SRCCOPY);
-					m_image.StretchBlt(m_picture.GetDC()->GetSafeHdc(),   //缩放
-						0, 0, rect.Width(), rect.Height(), SRCCOPY);
-					m_picture.InvalidateRect(NULL); //重绘
-					m_image.Destroy();
-					m_isFull = false;
-					TRACE("更新图片完成 %d %d\r\n", m_nObjHeight, m_nObjWidth);
-				}
+				//pParant->GetImage().BitBlt(m_picture.GetDC()->GetSafeHdc(), 0, 0, SRCCOPY);
+				m_image.StretchBlt(m_picture.GetDC()->GetSafeHdc(),   //缩放
+					0, 0, rect.Width(), rect.Height(), SRCCOPY);
+				m_picture.InvalidateRect(NULL); //重绘
+				m_image.Destroy();
+				m_isFull = false;
+				TRACE("更新图片完成 %d %d\r\n", m_nObjHeight, m_nObjWidth);
 				break;
 			}
 			case 5:
+				TRACE("远程端应答了鼠标操作\r\n");
+				break;
 			case 7:
 			case 8:
 			default:
@@ -151,8 +153,8 @@ void CWatchDialog::OnLButtonDblClk(UINT nFlags, CPoint point)
 		event.nButton = 0;//左键
 		event.nAction = 2;//双击
 		CClientController::getInstance()->
-			SendCommandPacket(GetSafeHwnd(),5, true,(BYTE*) &event, sizeof(event));
-		
+			SendCommandPacket(GetSafeHwnd(), 5, true, (BYTE*)&event, sizeof(event));
+
 	}
 	CDialog::OnLButtonDblClk(nFlags, point);
 }
