@@ -101,7 +101,7 @@ void CClientController::threadWatchScreen()
 	ULONGLONG nTick=GetTickCount64();
 	while (!m_isClosed) { //==while(true)
 		if (m_watchDlg.isFull() == false) {
-			if (GetTickCount64() - nTick < 200) {
+			if (GetTickCount64() - nTick < 100) { //±ê¼Ç£ºÑÓÊ±
 				Sleep(50 - DWORD(GetTickCount64() - nTick));
 			}
 			nTick = GetTickCount64();

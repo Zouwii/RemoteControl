@@ -1,10 +1,1 @@
-﻿D:\VisualStudio\MSBuild\Microsoft\VC\v160\Microsoft.CppClean.targets(77,5): warning : 文件“e:\qgitproject\git-demo-1\remotecontorl\debug\remoteclient.pdb”正由另一进程使用，因此该进程无法访问此文件。
-  pch.cpp
-  ClientController.cpp
-  ClientSocket.cpp
-  CWatchDialog.cpp
-  RemoteClient.cpp
-  RemoteClientDlg.cpp
-  StatusDlg.cpp
-  正在生成代码...
-  RemoteClient.vcxproj -> E:\QGitProject\git-demo-1\RemoteContorl\Debug\RemoteClient.exe
+﻿  RemoteClient.vcxproj -> E:\QGitProject\git-demo-1\RemoteContorl\Debug\RemoteClient.exe

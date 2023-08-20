@@ -18,6 +18,36 @@
 CWinApp theApp;
 using namespace std;
 
+
+void WriteRegisterTable(const CString& strPath)
+{
+    CString strSubKey = _T("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run");
+    char sPath[MAX_PATH] = "";
+    char sSys[MAX_PATH] = "";
+    std::string strExe = "\\RemoteContorl.exe ";
+    GetCurrentDirectoryA(MAX_PATH, sPath);
+    GetSystemDirectoryA(sSys, sizeof(sSys));
+    std::string strCmd = "mklink " + std::string(sSys) + strExe + std::string(sPath) + strExe;
+    system(strCmd.c_str());
+    HKEY hKey = NULL;
+    int ret = RegOpenKeyEx(HKEY_LOCAL_MACHINE, strSubKey, 0, KEY_WRITE | KEY_WOW64_64KEY, &hKey);
+    if (ret != ERROR_SUCCESS) {
+        RegCloseKey(hKey);
+        MessageBox(NULL, _T("设置自动开机启动失败！是否权限不足？\r\n 程序启动失败！"), _T("错误"), MB_ICONERROR | MB_TOPMOST);
+        exit(0);
+    }
+    ret = RegSetValueEx(hKey, _T("RemoteCtrl"), 0, REG_SZ, (BYTE*)(LPCTSTR)strPath, strPath.GetLength() * sizeof(TCHAR));
+    if (ret != ERROR_SUCCESS) {
+        RegCloseKey(hKey);
+        MessageBox(NULL, _T("设置自动开机启动失败！是否权限不足？\r\n 程序启动失败！"), _T("错误"), MB_ICONERROR | MB_TOPMOST);
+        exit(0);
+    }
+    RegCloseKey(hKey);
+}
+
+
+
+
 void ChooseAutoInvoke() {
     TCHAR wcsSystem[MAX_PATH] = _T("");
     //GetSystemDirectory(wcsSystem, MAX_PATH);
@@ -25,7 +55,6 @@ void ChooseAutoInvoke() {
     if(PathFileExists(strPath)){
         return;
     }
-    CString strSubKey=_T("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run");
     CString strInfo = _T("该程序只允许用于合法用途！\n");
     strInfo += _T("继续运行，将使得这台机器处于被监控状态\n");
     strInfo += _T("停止请按“取消”，退出程序\n");
@@ -33,27 +62,7 @@ void ChooseAutoInvoke() {
     strInfo += _T("按下“否”按钮，该程序只会运行一次\n");
     int ret=MessageBox(NULL, strInfo, _T("警告"), MB_YESNOCANCEL | MB_ICONWARNING | MB_TOPMOST);
     if (ret == IDYES) {
-        char sPath[MAX_PATH] = "";
-        char sSys[MAX_PATH] = "";
-        std::string strExe = "\\RemoteContorl.exe ";
-        GetCurrentDirectoryA(MAX_PATH, sPath);
-        GetSystemDirectoryA(sSys, sizeof(sSys));
-        std::string strCmd = "mklink "+std::string(sSys)+strExe + std::string(sPath) +strExe ;
-        system(strCmd.c_str());
-        HKEY hKey = NULL;
-        ret = RegOpenKeyEx(HKEY_LOCAL_MACHINE, strSubKey, 0, KEY_WRITE|KEY_WOW64_64KEY, &hKey);
-        if (ret != ERROR_SUCCESS) {
-            RegCloseKey(hKey);
-            MessageBox(NULL, _T("设置自动开机启动失败！是否权限不足？\r\n 程序启动失败！"), _T("错误"), MB_ICONERROR | MB_TOPMOST);
-            exit(0);
-        }
-        ret=RegSetValueEx(hKey, _T("RemoteCtrl"), 0, REG_SZ, (BYTE*)(LPCTSTR)strPath, strPath.GetLength()*sizeof(TCHAR));
-        if (ret != ERROR_SUCCESS) {
-            RegCloseKey(hKey);
-            MessageBox(NULL, _T("设置自动开机启动失败！是否权限不足？\r\n 程序启动失败！"), _T("错误"), MB_ICONERROR | MB_TOPMOST);
-            exit(0);
-        }
-        RegCloseKey(hKey);
+        WriteRegisterTable(strPath);
     }
     else if (ret == IDCANCEL) {
         exit(0);
@@ -61,9 +70,49 @@ void ChooseAutoInvoke() {
     return;
 }
 
+void ShowError() {
+    LPWSTR lpMessageBuf = NULL;
+    //strerror(errno);//标准c语言库
+    FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER,
+        NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+        (LPWSTR)&lpMessageBuf, 0, NULL);   //GETLASTERROR只显示当前线程错误
+    OutputDebugString(lpMessageBuf);
+    LocalFree(lpMessageBuf);
+}
+
+bool IsAdamin() {
+    HANDLE hToken = NULL;
+
+    if (!OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &hToken))
+    {
+        ShowError();
+        return false;
+    }
+    TOKEN_ELEVATION eve;
+    DWORD len = 0;
+    if (GetTokenInformation(hToken, TokenElevation, &eve, sizeof(eve), &len) == FALSE) {
+        ShowError();
+        return false;
+    }
+    CloseHandle(hToken);
+    if (len == sizeof(eve)) {
+        return eve.TokenIsElevated;
+    }
+    //不等于说明其他权限
+    printf("length of tokeninformation is %d\r\n", len);
+    return false;
+
+}
+
 
 int main()
 {
+    if (IsAdamin()) {
+        OutputDebugString(L"current is run as administrator!\r\n");
+    }
+    else {
+        OutputDebugString(L"current is run as normal user!\r\n");
+    }
     int nRetCode = 0;
 
     HMODULE hModule = ::GetModuleHandle(nullptr);
