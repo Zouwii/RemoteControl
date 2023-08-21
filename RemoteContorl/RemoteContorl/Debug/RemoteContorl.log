@@ -1,21 +1,11 @@
-﻿  pch.cpp
-  Command.cpp
+﻿  RemoteContorl.cpp
 E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\Packet.h(53,10): warning C4244: “=”: 从“DWORD”转换到“WORD”，可能丢失数据
 E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\Packet.h(61,10): warning C4244: “=”: 从“DWORD”转换到“WORD”，可能丢失数据
 E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ServerSocket.h(87,8): warning C4101: “buffer”: 未引用的局部变量
 E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\Command.h(56,56): warning C4244: “=”: 从“double”转换到“LONG”，可能丢失数据
 E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\Command.h(58,41): warning C4244: “=”: 从“double”转换到“LONG”，可能丢失数据
-  LockDialog.cpp
-  RemoteContorl.cpp
-E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\Packet.h(53,10): warning C4244: “=”: 从“DWORD”转换到“WORD”，可能丢失数据
-E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\Packet.h(61,10): warning C4244: “=”: 从“DWORD”转换到“WORD”，可能丢失数据
-E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ServerSocket.h(87,8): warning C4101: “buffer”: 未引用的局部变量
-E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\Command.h(56,56): warning C4244: “=”: 从“double”转换到“LONG”，可能丢失数据
-E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\Command.h(58,41): warning C4244: “=”: 从“double”转换到“LONG”，可能丢失数据
-  ServerSocket.cpp
-E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\Packet.h(53,10): warning C4244: “=”: 从“DWORD”转换到“WORD”，可能丢失数据
-E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\Packet.h(61,10): warning C4244: “=”: 从“DWORD”转换到“WORD”，可能丢失数据
-E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ServerSocket.h(87,8): warning C4101: “buffer”: 未引用的局部变量
-  ZHRTool.cpp
-  正在生成代码...
-  RemoteContorl.vcxproj -> E:\QGitProject\git-demo-1\RemoteContorl\Debug\RemoteContorl.exe
+E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\RemoteContorl.cpp(31,9): error C2561: “ChooseAutoInvoke”: 函数必须返回值
+E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\RemoteContorl.cpp(27): message : 参见“ChooseAutoInvoke”的声明
+E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\RemoteContorl.cpp(106,16): warning C4473: “printf”: 没有为格式字符串传递足够的参数
+E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\RemoteContorl.cpp(106,16): message : 占位符和其参数预计 1 可变参数，但提供的却是 0 参数
+E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\RemoteContorl.cpp(106,16): message : 缺失的可变参数 1 为格式字符串“%s”所需
