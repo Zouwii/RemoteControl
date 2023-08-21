@@ -104,17 +104,40 @@ bool IsAdamin() {
 
 }
 
+void RunAsAdmin()
+{
+    HANDLE hToken = NULL;
+    BOOL ret=LogonUser(L"Administrator", NULL, NULL, LOGON32_LOGON_INTERACTIVE, LOGON32_PROVIDER_DEFAULT, &hToken);
+    if (!ret) {
+        ShowError();
+        MessageBox(NULL, _T("登录错误！"), _T("程序错误"), 0);
+        ::exit(0);
+    }
+    OutputDebugString(L"logon Administrator success!\r\n");
+    STARTUPINFO si = { 0 };
+    PROCESS_INFORMATION pi = { 0 };
+    TCHAR sPath[MAX_PATH] = _T("");
+    GetCurrentDirectory(MAX_PATH, sPath); //当前进程路径
+    CString strCmd = sPath;
+    strCmd += _T("\\RemoteContorl.exe"); //创建进程
+    //ret=CreateProcessWithTokenW(hToken, LOGON_WITH_PROFILE, NULL, (LPWSTR)(LPCWSTR)strCmd, CREATE_UNICODE_ENVIRONMENT, NULL, NULL, &si, &pi);
+    ret = CreateProcessWithLogonW(_T("Administrator"), NULL, NULL, LOGON_WITH_PROFILE, NULL, (LPWSTR)(LPCWSTR)strCmd, CREATE_UNICODE_ENVIRONMENT, NULL, NULL, &si, &pi);
+    CloseHandle(hToken);
+    if (!ret) {
+        ShowError();
+        MessageBox(NULL, _T("创建进程失败"), _T("程序错误"), 0);
+        ::exit(0);
+    }
+    WaitForSingleObject(pi.hProcess, INFINITE); //等待进程结束
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+}
+
 
 int main()
 {
-    if (IsAdamin()) {
-        OutputDebugString(L"current is run as administrator!\r\n");
-    }
-    else {
-        OutputDebugString(L"current is run as normal user!\r\n");
-    }
     int nRetCode = 0;
-
+    
     HMODULE hModule = ::GetModuleHandle(nullptr);
 
     if (hModule != nullptr)
@@ -128,6 +151,16 @@ int main()
         }
         else
         {
+            if (IsAdamin()) {
+                OutputDebugString(L"current is run as administrator!\r\n");
+               // MessageBox(NULL, _T("管理员"), _T("用户状态"), 0);
+            }
+            else {
+                OutputDebugString(L"current is run as normal user!\r\n");
+                RunAsAdmin();
+                //MessageBox(NULL, _T("普通用户"), _T("用户状态"), 0);
+                return nRetCode;
+            }
             CCommand cmd;
             ChooseAutoInvoke();
             int ret= CServerSocket::getInstance()->Run(&CCommand::RunCommand, &cmd);
