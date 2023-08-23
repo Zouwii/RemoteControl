@@ -129,33 +129,40 @@ void fun1()
 }
 
 
-int main()
+void test()
 {
-	if (!CZHRTool::Init())return 1;
-
-	printf("press any key to exit...\r\n");
+	//printf("press any key to exit...\r\n");
 	CZHRQueue<std::string> lstStrings;
-	ULONGLONG tick0 = GetTickCount64(), tick = GetTickCount64();
+	ULONGLONG tick0 = GetTickCount64(), tick = GetTickCount64(),total= GetTickCount64();
 
-	while (_kbhit() == 0) {   //完成端口 把请求和实现分离
-		if (GetTickCount64() - tick0 > 1300) {
+	while (GetTickCount64() - total <= 1000) {   //完成端口 把请求和实现分离
+		if (GetTickCount64() - tick0 > 13) {
 			lstStrings.PushBack("hello world");
 			tick0 = GetTickCount64();
+			printf("pushback to queue\r\n");
 		}
-		if (GetTickCount64() - tick > 2000) {
+		if (GetTickCount64() - tick > 20) {
 			std::string str;
 			lstStrings.PopFront(str);
 			tick = GetTickCount64();
 			printf("pop from queue:%s\r\n", str.c_str());
 		}
-		Sleep(1);
+		//Sleep(1);
 	}
-	printf("exit done!size %d\r\n", lstStrings.Size());
+
+	printf("exit done!   size %d\r\n", lstStrings.Size());
 	lstStrings.Clear();
-	printf("exit done!size %d\r\n", lstStrings.Size());
-	::exit(0);
+	printf("exit done!   size %d\r\n", lstStrings.Size());
+}
 
-
+int main()
+{
+	if (!CZHRTool::Init())return 1;
+	for (int i = 0; i < 10; i++)
+	{
+		test();
+	}
+	return 0;
 
 
 	//####################################################

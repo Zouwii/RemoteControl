@@ -35,24 +35,29 @@ public:
 		m_hThread = INVALID_HANDLE_VALUE;
 		if (m_hCompletionPort != NULL) {
 			m_hThread = (HANDLE)_beginthread(
-				&CZHRQueue::threadEntry, 0, m_hCompletionPort);
+				&CZHRQueue::threadEntry, 0, this);
 		}
 	}
 	~CZHRQueue() {
 		if (m_lock)return;
 		m_lock = true;
-		HANDLE htemp = m_hCompletionPort;
 		PostQueuedCompletionStatus(m_hCompletionPort, 0, NULL, NULL);
 		WaitForSingleObject(m_hCompletionPort, INFINITE);
-		m_hCompletionPort = NULL;
-		CloseHandle(htemp);
-
+		if (m_hCompletionPort != NULL) {
+			HANDLE htemp = m_hCompletionPort;
+			m_hCompletionPort = NULL;
+			CloseHandle(htemp);
+		}
 	}
 	bool PushBack(const T& data) {
-		if (m_lock) return false;
 		IocpParam* pParam = new IocpParam(EQPush, data);
+		if (m_lock) {
+			delete pParam;
+			return false;
+		}
 		bool ret = PostQueuedCompletionStatus(m_hCompletionPort, sizeof(PPARAM), (ULONG_PTR)pParam, NULL);
 		if (ret == false)delete pParam;
+		//printf("push back done!  %d  %08p \r\n", ret,(void*)pParam);
 		return ret;
 	}
 	bool PopFront(T& data) {
@@ -113,6 +118,7 @@ private:
 		{
 			m_lstData.push_back(pParam->Data);
 			delete pParam;
+			//printf("delete %08p\r\n",(void*)pParam);
 		}
 		break;
 		case EQPop:
@@ -161,6 +167,7 @@ private:
 				break;
 			}
 			pParam = (PPARAM*)CompletionKey;
+			//printf("%08X \r\n", pParam);
 			DealParam(pParam);
 		}
 		while (GetQueuedCompletionStatus(
@@ -169,13 +176,16 @@ private:
 			&CompletionKey,
 			&pOverlapped, 0)) {
 			if ((dwTransferred == 0) || (CompletionKey == NULL)) {
-				printf("thread is prepared to exit!\r\n");
+				printf("thread is prepared to exit   ========  !\r\n");
 				continue;
 			}
 			pParam = (PPARAM*)CompletionKey;
 			DealParam(pParam);
 		}
-		CloseHandle(m_hCompletionPort);
+		HANDLE hTemp = m_hCompletionPort;
+		m_hCompletionPort = NULL;
+		CloseHandle(hTemp);
+		//m_hCompletionPort = NULL;
 	}
 private:
 	std::list <T>m_lstData;
