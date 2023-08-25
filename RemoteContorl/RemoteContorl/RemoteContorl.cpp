@@ -8,6 +8,8 @@
 #include "Command.h"
 #include <conio.h>
 #include "CZHRQueue.h"
+#include <MSWSock.h>
+#include "ZhrServer.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -48,120 +50,16 @@ bool ChooseAutoInvoke(const CString& strPath) {
 
 //###########################################################################################
 
-
-typedef struct IocpParam {
-	int nOperator;//操作
-	std::string strData;//数据
-	_beginthread_proc_type cbFunc;//回调函数
-	IocpParam(int op, const char* sData, _beginthread_proc_type cb = NULL) {
-		nOperator = op;
-		strData = sData;
-		cbFunc = cb;  //func(pstr)
-	}
-	IocpParam() {
-		nOperator = -1;
-	}
-}IOCP_PARAM;
-
-enum {
-	IocpListEmpty,
-	IocpListPush,
-	IocpListPop
-};
-
-void threadmain(HANDLE hIOCP) {
-	std::list<std::string> lstString;
-	DWORD dwTransferred = 0;
-	ULONG_PTR CompletionKey = 0;
-	OVERLAPPED* pOverlapped = NULL;
-	int count = 0, count0 = 0;
-	while (GetQueuedCompletionStatus(hIOCP, &dwTransferred, &CompletionKey, &pOverlapped, INFINITE)) {
-		if ((dwTransferred == 0) || (CompletionKey == NULL)) {
-			printf("thread is prepared to exit!\r\n");
-			break;
-		}
-		IOCP_PARAM* pParam = (IOCP_PARAM*)CompletionKey;
-		if (pParam->nOperator == IocpListPush) {
-			lstString.push_back(pParam->strData);
-			count0++;
-		}
-		else if (pParam->nOperator == IocpListPop) {
-			std::string* pStr = NULL;
-			if (lstString.size() > 0) {
-				pStr = new std::string(lstString.front());
-				lstString.pop_front();
-			}
-			if (pParam->cbFunc) {
-				pParam->cbFunc(pStr); //"hello world"
-			}
-			count++;
-		}
-		else if (pParam->nOperator == IocpListEmpty) {
-			lstString.clear();
-		}
-		delete pParam;
-	}
-	//lstString.clear();
-	printf("thread exit! count: %d  count0: %d \r\n", count, count0);
-}
-
-void threadQueryEntry(HANDLE hIOCP) { //工作线程
-	threadmain(hIOCP);
-	_endthread(); //
-}
+void iocp();
 
 
-void func(void* arg) {
-	std::string* pstr = (std::string*)arg;
-	if (pstr != NULL) {
-		printf("pop from list:%s\r\n", pstr->c_str());
-		delete pstr;
-	}
-	else {
-		printf("list is empty,no data\r\n");
-	}
-}
-
-
-void fun1()
-{
-
-}
-
-
-void test()
-{
-	//printf("press any key to exit...\r\n");
-	CZHRQueue<std::string> lstStrings;
-	ULONGLONG tick0 = GetTickCount64(), tick = GetTickCount64(),total= GetTickCount64();
-
-	while (GetTickCount64() - total <= 1000) {   //完成端口 把请求和实现分离
-		if (GetTickCount64() - tick0 > 13) {
-			lstStrings.PushBack("hello world");
-			tick0 = GetTickCount64();
-			printf("pushback to queue\r\n");
-		}
-		if (GetTickCount64() - tick > 20) {
-			std::string str;
-			lstStrings.PopFront(str);
-			tick = GetTickCount64();
-			printf("pop from queue:%s\r\n", str.c_str());
-		}
-		//Sleep(1);
-	}
-
-	printf("exit done!   size %d\r\n", lstStrings.Size());
-	lstStrings.Clear();
-	printf("exit done!   size %d\r\n", lstStrings.Size());
-}
 
 int main()
 {
 	if (!CZHRTool::Init())return 1;
-	for (int i = 0; i < 10; i++)
-	{
-		test();
-	}
+
+	iocp();
+
 	return 0;
 
 
@@ -188,4 +86,24 @@ int main()
 		}
 	}
 	return 0;*/
+}
+
+class COverlapped {
+public:
+	OVERLAPPED m_overlapped;
+	DWORD m_operator;
+	char m_buffer[4096];
+	COverlapped() {
+		m_operator = 0;
+		memset(&m_overlapped, 0, sizeof(m_overlapped));
+		memset(&m_buffer, 0, sizeof(m_buffer));
+	}
+};
+
+
+void iocp()
+{
+	ZhrServer server;
+	server.StartServer();
+	getchar();
 }

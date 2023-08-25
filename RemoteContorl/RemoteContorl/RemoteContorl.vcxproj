@@ -90,7 +90,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_WINSOCK_DEPRECATED_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -164,6 +164,8 @@
     <ClInclude Include="Resource.h" />
     <ClInclude Include="ServerSocket.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="ZhrServer.h" />
+    <ClInclude Include="ZhrThread.h" />
     <ClInclude Include="ZHRTool.h" />
   </ItemGroup>
   <ItemGroup>
@@ -177,6 +179,7 @@
     </ClCompile>
     <ClCompile Include="RemoteContorl.cpp" />
     <ClCompile Include="ServerSocket.cpp" />
+    <ClCompile Include="ZhrServer.cpp" />
     <ClCompile Include="ZHRTool.cpp" />
   </ItemGroup>
   <ItemGroup>

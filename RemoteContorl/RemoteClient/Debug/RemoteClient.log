@@ -1,9 +1,1 @@
-﻿  pch.cpp
-  ClientController.cpp
-  ClientSocket.cpp
-  CWatchDialog.cpp
-  RemoteClient.cpp
-  RemoteClientDlg.cpp
-  StatusDlg.cpp
-  正在生成代码...
-  RemoteClient.vcxproj -> E:\QGitProject\git-demo-1\RemoteContorl\Debug\RemoteClient.exe
+﻿
