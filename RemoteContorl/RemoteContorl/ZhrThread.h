@@ -12,7 +12,7 @@ class ThreadWorker {
 public:
 	ThreadWorker() :thiz(NULL), func(NULL) {}
 
-	ThreadWorker(ThreadFuncBase* obj, FUNCTYPE f):thiz(obj),func(f) {}
+	ThreadWorker(void* obj, FUNCTYPE f):thiz((ThreadFuncBase*)obj),func(f) {}
 
 	ThreadWorker(const ThreadWorker& worker) {
 		thiz = worker.thiz;
@@ -111,11 +111,13 @@ private:
 					int ret = worker();
 					if (ret != 0) {
 						CString str;
-						str.Format(_T("thread foundwarning code %d\r\n"), ret);
+						str.Format(_T("thread found warning code %d\r\n"), ret);
 						OutputDebugString(str);
 					}
 					if (ret < 0) {
+						::ThreadWorker* pWorker = m_worker.load();
 						m_worker.store(NULL);
+						delete pWorker;
 					}
 				}
 			}

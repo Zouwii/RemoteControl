@@ -233,7 +233,7 @@ void CRemoteClientDlg::InitUIData()
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 	// TODO: 在此添加额外的初始化代码
 	UpdateData();
-	m_server_address = 0xC0A8006C; //172.20.10.4
+	m_server_address = 0x7F000001; //172.20.10.4
 	m_nPort = _T("9527");
 	CClientController* pController =
 		CClientController::getInstance();

@@ -15,15 +15,20 @@ AcceptOperlapped<op>::AcceptOperlapped()
 template<ZhrOperator op>
 int AcceptOperlapped<op>::AcceptWorker() {
 	INT lLength = 0, rLength = 0;
-	if (*(LPDWORD)*m_client > 0) {
+	if (m_client->GetBufferSize() > 0) {
+		sockaddr* plocal = NULL, * premote = NULL;
 		GetAcceptExSockaddrs(*m_client, 0, sizeof(sockaddr_in) + 16, sizeof(sockaddr_in) + 16,
-			(sockaddr**)m_client->GetLocalAddr(), &lLength, //本地地址
-			(sockaddr**)m_client->GetRemoteAddr(), &rLength //远程地址
+			(sockaddr**)&plocal, &lLength, //本地地址
+			(sockaddr**)&premote, &rLength //远程地址
 		);
 		//RECVOVERLAPPED
-		int ret = WSARecv((SOCKET)*m_client, m_client->RecvWSABuffer(), 1, *m_client, &m_client->flags(), *m_client, NULL);
+		memcpy(m_client->GetLocalAddr(), plocal, sizeof(sockaddr_in));
+		memcpy(m_client->GetRemoteAddr(), premote, sizeof(sockaddr_in));
+		m_server->BindNewSocket(*m_client);
+		int ret = WSARecv((SOCKET)*m_client, m_client->RecvWSABuffer(), 1, *m_client, &m_client->flags(),m_client->RecvOverlapped() , NULL);
 		if (ret == SOCKET_ERROR && (WSAGetLastError() != WSA_IO_PENDING)) {
 			//TODO:报错
+			TRACE("ret=%d error=%d \r\n", ret, WSAGetLastError());
 		}
 
 		if (!m_server->NewAccept()) { //accpet后开启下一轮accept
@@ -71,6 +76,7 @@ void ZhrClient::SetOverlapped(PCLIENT& ptr) {
 }
 
 ZhrClient::operator LPOVERLAPPED() {
+	//LPWSAOVERLAPPED
 	return &m_overlapped->m_overlapped;
 }
 
@@ -79,9 +85,19 @@ LPWSABUF ZhrClient::RecvWSABuffer()
 	return &m_recv->m_wsabuffer;
 }
 
+LPWSAOVERLAPPED ZhrClient::RecvOverlapped()
+{
+	return &m_recv->m_overlapped;
+}
+
 LPWSABUF ZhrClient::SendWSABuffer()
 {
 	return &m_send->m_wsabuffer;
+}
+
+LPWSAOVERLAPPED ZhrClient::SendOverlapped()
+{
+	return &m_send->m_overlapped;
 }
 
 int ZhrClient::Recv()
@@ -90,6 +106,7 @@ int ZhrClient::Recv()
 	if (ret <= 0) return -1;
 	m_used += (size_t)ret;
 	//todo :解析数据
+	CZHRTool::Dump((BYTE*)m_buffer.data(), ret);
 	return 0;
 }
 
@@ -127,6 +144,7 @@ ZhrServer::~ZhrServer()
 	m_client.clear();
 	CloseHandle(m_hIOCP);
 	m_pool.Stop();
+	WSACleanup();
 }
 
 bool ZhrServer::StartServer()
@@ -158,6 +176,37 @@ bool ZhrServer::StartServer()
 	return true;
 }
 
+bool ZhrServer::NewAccept()
+{
+	PCLIENT pClient(new ZhrClient());  //pclient 是ZhrClient类型的智能指针
+	pClient->SetOverlapped(pClient);
+	m_client.insert(std::pair<SOCKET, PCLIENT>(*pClient, pClient));
+	if (!AcceptEx(m_sock, *pClient, *pClient, 0, sizeof(sockaddr_in) + 16, sizeof(sockaddr_in) + 16, *pClient, *pClient)) {
+		TRACE("%d\r\n", WSAGetLastError());
+		if (WSAGetLastError() != WSA_IO_PENDING) {
+			closesocket(m_sock);
+			m_sock = INVALID_SOCKET;
+			m_hIOCP = INVALID_HANDLE_VALUE;
+			return false;
+		}
+	}
+	return true;
+}
+
+void ZhrServer::BindNewSocket(SOCKET s)
+{
+	CreateIoCompletionPort((HANDLE)s, m_hIOCP, (ULONG_PTR)this, 0);
+}
+
+void ZhrServer::CreateSocket()
+{
+	WSADATA WSAData;
+	WSAStartup(MAKEWORD(2, 2), &WSAData);
+	m_sock = WSASocket(PF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
+	int opt = 1;
+	setsockopt(m_sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&opt, sizeof(opt));
+}
+
 int ZhrServer::threadIocp()
 {
 
@@ -165,8 +214,10 @@ int ZhrServer::threadIocp()
 	ULONG_PTR CompletionKey = 0;
 	OVERLAPPED* lpOverlapped = NULL;
 	if (GetQueuedCompletionStatus(m_hIOCP, &transfered, &CompletionKey, &lpOverlapped, INFINITE)) {
-		if (transfered > 0 && (CompletionKey != 0)) {
+		if (CompletionKey != 0) {
 			ZhrOverlapped* pOverlapped = CONTAINING_RECORD(lpOverlapped, ZhrOverlapped, m_overlapped);
+			TRACE("pOverlapped->moperator %d \r\n", pOverlapped->m_operator);
+			pOverlapped->m_server = this;
 			switch (pOverlapped->m_operator) {
 			case EAccept:
 			{
