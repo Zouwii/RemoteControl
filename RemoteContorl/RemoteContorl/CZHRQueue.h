@@ -2,6 +2,7 @@
 #include "pch.h"
 #include <atomic>
 #include <list>
+#include "ZhrThread.h"
 
 
 template <class T>
@@ -39,7 +40,7 @@ public:
 				&CZHRQueue::threadEntry, 0, this);
 		}
 	}
-	~CZHRQueue() {
+	virtual ~CZHRQueue() {
 		if (m_lock)return;
 		m_lock = true;
 		PostQueuedCompletionStatus(m_hCompletionPort, 0, NULL, NULL);
@@ -61,7 +62,7 @@ public:
 		//printf("push back done!  %d  %08p \r\n", ret,(void*)pParam);
 		return ret;
 	}
-	bool PopFront(T& data) {
+	virtual bool PopFront(T& data) {
 		HANDLE hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 		IocpParam Param(EQPop, data, hEvent);
 		if (m_lock) {
@@ -106,14 +107,14 @@ public:
 		if (ret == false)delete pParam;
 		return ret;
 	}
-private:
+protected:
 	static void threadEntry(void* arg) {
 		CZHRQueue<T>* thiz = (CZHRQueue<T>*)arg;
 		thiz->threadMain();
 		_endthread();
 	}
 
-	void DealParam(PPARAM* pParam) {
+	virtual void DealParam(PPARAM* pParam) {
 		switch (pParam->nOperator) {
 		case EQPush:
 		{
@@ -153,7 +154,7 @@ private:
 		}
 	}
 
-	void threadMain() {
+	virtual void threadMain() {
 		DWORD dwTransferred = 0;
 		PPARAM* pParam = NULL;
 		ULONG_PTR CompletionKey = 0;
@@ -188,10 +189,102 @@ private:
 		CloseHandle(hTemp);
 		//m_hCompletionPort = NULL;
 	}
-private:
+protected:
 	std::list <T>m_lstData;
 	HANDLE m_hCompletionPort;
 	HANDLE m_hThread;
 	std::atomic<bool>m_lock;//队列正在析构
 };
 
+//#####################################################
+
+template<class T>
+class ZhrSendQueue :public CZHRQueue<T>,public ThreadFuncBase
+{
+public:
+	typedef int (ThreadFuncBase::* ZHRCALLBACK)(T& data);
+	ZhrSendQueue(ThreadFuncBase* obj, ZHRCALLBACK callback)
+		:CZHRQueue<T>(), m_base(obj), m_callback(callback)
+	{
+		m_thread.Start();
+		m_thread.UpdataWorker(::ThreadWorker(this, (FUNCTYPE)&ZhrSendQueue<T>::threadTick));
+	}
+	virtual ~ZhrSendQueue(){
+		m_base = NULL;
+		m_callback = NULL;
+		m_thread.Stop();
+	}
+
+protected:
+	virtual bool PopFront(T& data) {
+		return false;
+	}
+	bool PopFront()
+	{
+		typename CZHRQueue<T>::IocpParam* Param=new typename CZHRQueue<T>::IocpParam(CZHRQueue<T>::EQPop, T());
+		if (CZHRQueue<T>::m_lock) {
+			delete Param;
+			return false;
+		}
+		bool ret = PostQueuedCompletionStatus(CZHRQueue<T>::m_hCompletionPort, sizeof(*Param), (ULONG_PTR)&Param, NULL);
+		if (ret == false)
+		{
+			delete Param;
+			return false;
+		}
+		return ret;
+	}
+	int threadTick() {
+		if (WaitForSingleObject(CZHRQueue<T>::m_hThread, 0) != WAIT_TIMEOUT) return 0;
+		if (CZHRQueue<T>::m_lstData.size() > 0 ) {
+			PopFront();
+		}
+		return 0;
+	}
+
+	virtual void DealParam(typename CZHRQueue<T>::PPARAM* pParam) {
+		switch (pParam->nOperator) {
+		case CZHRQueue<T>::EQPush:
+		{
+			CZHRQueue<T>::m_lstData.push_back(pParam->Data);
+			delete pParam;
+			//printf("delete %08p\r\n",(void*)pParam);
+		}
+		break;
+		case CZHRQueue<T>::EQPop:
+		{
+			if (CZHRQueue<T>::m_lstData.size() > 0) {
+				pParam->Data = CZHRQueue<T>::m_lstData.front();
+				if((m_base->*m_callback)(pParam->Data)==0)
+					CZHRQueue<T>::m_lstData.pop_front();
+			}
+			delete pParam;
+		}
+		break;
+		case CZHRQueue<T>::EQSize:
+		{
+			pParam->nOperator = CZHRQueue<T>::m_lstData.size();
+			if (pParam->hEvent != NULL) {
+				SetEvent(pParam->hEvent);
+			}
+		}
+		break;
+		case CZHRQueue<T>::EQClear:
+		{
+			CZHRQueue<T>::m_lstData.clear();
+			delete pParam;
+		}
+		break;
+		default:
+			OutputDebugStringA("unknown operator!\r\n");
+			break;
+		}
+	}
+
+private:
+	ThreadFuncBase* m_base;
+	ZHRCALLBACK m_callback;
+	ZhrThread m_thread;
+};
+
+typedef ZhrSendQueue<std::vector<char>>::ZHRCALLBACK SENDCALLBACK;

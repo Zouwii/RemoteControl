@@ -5,10 +5,7 @@
 #include "pch.h"
 #include <Windows.h>
 
-class ThreadFuncBase{
-public:
-	void test() {}
-};
+class ThreadFuncBase{};
 typedef int (ThreadFuncBase::* FUNCTYPE)();  //FUNCTYPE就是新定义的pfunc函数指针  继承然后就可以调用了
 
 class ThreadWorker {
@@ -49,7 +46,8 @@ class ZhrThread
 {
 public:
 	ZhrThread() {
-		m_hThread = (HANDLE)_beginthread(ThreadEntry, 0, this);
+		m_hThread = NULL;
+		m_bStatus = false;
 	}
 	~ZhrThread()
 	{
@@ -72,40 +70,53 @@ public:
 	{
 		if (m_bStatus == false) return true;
 		m_bStatus = false;
-		bool ret=WaitForSingleObject(m_hThread, INFINITE) == WAIT_OBJECT_0;
+		DWORD ret=WaitForSingleObject(m_hThread, 1000);
 		UpdataWorker();
-
+		if (ret == WAIT_TIMEOUT) {
+			TerminateThread(m_hThread, -1);
+		}
+		UpdataWorker();
+		return ret=WAIT_OBJECT_0;
 	}
 	void UpdataWorker(const::ThreadWorker& worker=::ThreadWorker()) {
-		if (!worker.IsValid()) {
-			m_worker.store(NULL);
-			return;
-		}
-		if (m_worker.load() != NULL) {
+		if (m_worker.load() != NULL&&(m_worker.load()!=&worker)) {
 			::ThreadWorker* pWorker = m_worker.load();
 			m_worker.store(NULL);
 			delete pWorker;
 		}
+		if (m_worker.load() == &worker)return;
+		if (!worker.IsValid()) {
+			m_worker.store(NULL);
+			return;
+		}
+		
 		m_worker.store(new::ThreadWorker(worker));
 	}
 
 	bool IsIdle() {//ture 空闲  false 已经分配了工作
+		if (m_worker.load() == NULL)return true;
 	    return	!m_worker.load()->IsValid();
 	}
 
 private:
 	void ThreadWorker() {
 		while (m_bStatus) {
+			if (m_worker.load() == NULL) {
+				Sleep(1);
+				continue;
+			}
 			::ThreadWorker worker= *m_worker.load();
 			if (worker.IsValid()) {
-				int ret = worker();
-				if (ret != 0) {
-					CString str;
-					str.Format(_T("thread foundwarning code %d\r\n"), ret);
-					OutputDebugString(str);
-				}
-				if (ret < 0) {
-					m_worker.store(NULL);
+				if (WaitForSingleObject(m_hThread, 0) == WAIT_TIMEOUT) {
+					int ret = worker();
+					if (ret != 0) {
+						CString str;
+						str.Format(_T("thread foundwarning code %d\r\n"), ret);
+						OutputDebugString(str);
+					}
+					if (ret < 0) {
+						m_worker.store(NULL);
+					}
 				}
 			}
 			else {
@@ -140,6 +151,10 @@ public:
 	ZhrThreadPool() {}
 	~ZhrThreadPool(){
 		Stop();
+		for (size_t i = 0; i < m_threads.size(); i++) {
+			delete m_threads[i];
+			m_threads[i] = NULL;
+		}
 		m_threads.clear();
 	}
 	bool Invoke() {

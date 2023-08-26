@@ -24,8 +24,11 @@ public:
 	std::vector<char>m_buffer; //缓冲区
 	ThreadWorker m_worker; //对应的处理函数
 	ZhrServer* m_server; //服务器对象
-	PCLIENT m_client;//对应的客户端
+	ZhrClient* m_client;//对应的客户端
 	WSABUF m_wsabuffer;
+	virtual ~ZhrOverlapped() {
+		m_buffer.clear();
+	}
 };
 
 
@@ -38,11 +41,19 @@ typedef RecvOperlapped<ERecv> RECVOVERLAPPED;
 template<ZhrOperator>class SendOperlapped;
 typedef SendOperlapped<ESend> SENDOVERLAPPED;
 
-class ZhrClient {
+
+//#####################################################
+//CLIENT
+class ZhrClient: public ThreadFuncBase{
 public:
 	ZhrClient();
 	~ZhrClient() {
+		m_buffer.clear();
 		closesocket(m_sock);
+		m_recv.reset();
+		m_send.reset();
+		m_overlapped.reset();
+		m_vecSend.Clear();
 	}
 
 	void SetOverlapped(PCLIENT& ptr);
@@ -64,15 +75,10 @@ public:
 	sockaddr_in* GetLocalAddr() { return &m_laddr; }
 	sockaddr_in* GetRemoteAddr() { return &m_raddr; }
 	size_t GetBufferSize() const { return m_buffer.size(); }
+	int Recv();
+	int Send(void* buffer, size_t nSize);
+	int SendData(std::vector<char>& data);
 
-
-	int Recv() {
-		int ret = recv(m_sock, m_buffer.data() + m_used, m_buffer.size() - m_used, 0);
-		if (ret <= 0) return -1;
-		m_used += (size_t)ret;
-		//todo :解析数据
-		return 0;
-	}
 private:
 	SOCKET m_sock;
 	DWORD m_received;
@@ -85,19 +91,18 @@ private:
 	sockaddr_in m_laddr;
 	sockaddr_in m_raddr;
 	bool m_isbusy;
+	ZhrSendQueue<std::vector<char>> m_vecSend;//发送数据队列
 };
 
 
 //#################################################################
-//##################################################################
+//template
 template<ZhrOperator>
 class AcceptOperlapped :public ZhrOverlapped, ThreadFuncBase
 {
 public:
 	AcceptOperlapped();
-
 	int AcceptWorker();
-	PCLIENT m_client;
 };
 
 
@@ -145,10 +150,8 @@ public:
 typedef ErrorOperlapped<EError> ERROROVERLAPPED;  //上面的模板
 
 
-
-//##############################################################################
-
-//#################################################
+//##############################################################
+//SERVER
 
 class ZhrServer :
 	public ThreadFuncBase
@@ -162,7 +165,7 @@ public:
 		m_addr.sin_addr.s_addr = inet_addr(ip.c_str());
 
 	}
-	~ZhrServer() {}
+	~ZhrServer();
 
 	bool StartServer();
 	bool NewAccept() {
