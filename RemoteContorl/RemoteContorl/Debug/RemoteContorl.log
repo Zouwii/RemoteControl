@@ -1,14 +1,14 @@
-﻿  RemoteContorl.cpp
-E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\Packet.h(53,10): warning C4244: “=”: 从“DWORD”转换到“WORD”，可能丢失数据
-E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\Packet.h(61,10): warning C4244: “=”: 从“DWORD”转换到“WORD”，可能丢失数据
-E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ServerSocket.h(87,8): warning C4101: “buffer”: 未引用的局部变量
-E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\Command.h(56,56): warning C4244: “=”: 从“double”转换到“LONG”，可能丢失数据
-E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\Command.h(58,41): warning C4244: “=”: 从“double”转换到“LONG”，可能丢失数据
-  ZhrServer.cpp
+﻿  ZhrServer.cpp
 E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ZhrServer.cpp(7,1): warning C4407: 在指向成员表示形式的不同指针之间进行强制转换，编译器可能生成不正确的代码
 E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ZhrServer.cpp(6): message : 在编译 类 模板 成员函数“AcceptOperlapped<EAccept>::AcceptOperlapped(void)”时
-E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ZhrServer.cpp(29): message : 查看对正在编译的函数 模板 实例化“AcceptOperlapped<EAccept>::AcceptOperlapped(void)”的引用
-E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ZhrServer.h(208): message : 查看对正在编译的 类 模板 实例化“AcceptOperlapped<EAccept>”的引用
-  正在生成代码...
+E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ZhrServer.cpp(55): message : 查看对正在编译的函数 模板 实例化“AcceptOperlapped<EAccept>::AcceptOperlapped(void)”的引用
+E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ZhrServer.cpp(55): message : 查看对正在编译的 类 模板 实例化“AcceptOperlapped<EAccept>”的引用
+E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ZhrServer.cpp(47,1): warning C4407: 在指向成员表示形式的不同指针之间进行强制转换，编译器可能生成不正确的代码
+E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ZhrServer.cpp(45): message : 在编译 类 模板 成员函数“RecvOperlapped<ERecv>::RecvOperlapped(void)”时
+E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ZhrServer.cpp(56): message : 查看对正在编译的函数 模板 实例化“RecvOperlapped<ERecv>::RecvOperlapped(void)”的引用
+E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ZhrServer.cpp(56): message : 查看对正在编译的 类 模板 实例化“RecvOperlapped<ERecv>”的引用
+E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ZhrServer.cpp(39,1): warning C4407: 在指向成员表示形式的不同指针之间进行强制转换，编译器可能生成不正确的代码
+E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ZhrServer.cpp(37): message : 在编译 类 模板 成员函数“SendOperlapped<ESend>::SendOperlapped(void)”时
+E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ZhrServer.cpp(57): message : 查看对正在编译的函数 模板 实例化“SendOperlapped<ESend>::SendOperlapped(void)”的引用
+E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ZhrServer.cpp(57): message : 查看对正在编译的 类 模板 实例化“SendOperlapped<ESend>”的引用
 E:\QGitProject\git-demo-1\RemoteContorl\RemoteContorl\ZhrThread.h(78): warning C4715: “ZhrThread::Stop”: 不是所有的控件路径都返回值
-  RemoteContorl.vcxproj -> E:\QGitProject\git-demo-1\RemoteContorl\Debug\RemoteContorl.exe

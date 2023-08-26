@@ -17,18 +17,27 @@ class ZhrServer;
 class ZhrClient;
 typedef std::shared_ptr<ZhrClient> PCLIENT;
 
-class ZhrOverlapped {
+class ZhrOverlapped {      //父类 recv和send都要用
 public:
 	OVERLAPPED m_overlapped;
 	DWORD m_operator;   //操作 见ZhrOperator
 	std::vector<char>m_buffer; //缓冲区
 	ThreadWorker m_worker; //对应的处理函数
 	ZhrServer* m_server; //服务器对象
+	PCLIENT m_client;//对应的客户端
+	WSABUF m_wsabuffer;
 };
 
 
 template<ZhrOperator>class AcceptOperlapped;
 typedef AcceptOperlapped<EAccept> ACCEPTOVERLAPPED;
+
+template<ZhrOperator>class RecvOperlapped;
+typedef RecvOperlapped<ERecv> RECVOVERLAPPED;
+
+template<ZhrOperator>class SendOperlapped;
+typedef SendOperlapped<ESend> SENDOVERLAPPED;
+
 class ZhrClient {
 public:
 	ZhrClient();
@@ -48,18 +57,38 @@ public:
 	operator LPDWORD() {
 		return &m_received;
 	}
+	LPWSABUF RecvWSABuffer();
+	LPWSABUF SendWSABuffer();
+	DWORD& flags() { return m_flags; }
+
 	sockaddr_in* GetLocalAddr() { return &m_laddr; }
 	sockaddr_in* GetRemoteAddr() { return &m_raddr; }
+	size_t GetBufferSize() const { return m_buffer.size(); }
+
+
+	int Recv() {
+		int ret = recv(m_sock, m_buffer.data() + m_used, m_buffer.size() - m_used, 0);
+		if (ret <= 0) return -1;
+		m_used += (size_t)ret;
+		//todo :解析数据
+		return 0;
+	}
 private:
 	SOCKET m_sock;
 	DWORD m_received;
+	DWORD m_flags;
 	std::shared_ptr<ACCEPTOVERLAPPED> m_overlapped;
+	std::shared_ptr<RECVOVERLAPPED> m_recv;
+	std::shared_ptr<SENDOVERLAPPED> m_send;
 	std::vector<char> m_buffer;
+	size_t m_used;// 已经使用的缓冲区大小
 	sockaddr_in m_laddr;
 	sockaddr_in m_raddr;
 	bool m_isbusy;
 };
 
+
+//#################################################################
 //##################################################################
 template<ZhrOperator>
 class AcceptOperlapped :public ZhrOverlapped, ThreadFuncBase
@@ -72,28 +101,17 @@ public:
 };
 
 
-
-
-
-
-
-
-
-
 template<ZhrOperator>
 class RecvOperlapped :public ZhrOverlapped, ThreadFuncBase
 {
 public:
-	RecvOperlapped() :m_operator(ERecv), m_worker(this, &RecvOperlapped::RecvWorker) {
-		memset(&m_overlapped, 0, sizeof(m_overlapped));
-		m_buffer.resize(1024 * 256);
-	}
+	RecvOperlapped();
 
 	int RecvWorker() {
-		//todo
+		int ret = m_client->Recv();
+		return ret;
 	}
 };
-typedef RecvOperlapped<ERecv> RECVOVERLAPPED;  //上面的模板
 
 
 
@@ -101,16 +119,14 @@ template<ZhrOperator>
 class SendOperlapped :public ZhrOverlapped, ThreadFuncBase
 {
 public:
-	SendOperlapped() :m_operator(ESend), m_worker(this, &SendOperlapped::SendWorker) {
-		memset(&m_overlapped, 0, sizeof(m_overlapped));
-		m_buffer.resize(1024 * 256);
-	}
+	SendOperlapped();
 
 	int SendWorker() {
 		//todo
+		return -1;
 	}
 };
-typedef SendOperlapped<ESend> SENDOVERLAPPED;  //上面的模板
+
 
 
 template<ZhrOperator>
@@ -144,37 +160,11 @@ public:
 		m_addr.sin_family = AF_INET;
 		m_addr.sin_port = htons(port);
 		m_addr.sin_addr.s_addr = inet_addr(ip.c_str());
-		
+
 	}
 	~ZhrServer() {}
 
-	bool StartServer() {
-		CreateSocket();
-		if (bind(m_sock, (sockaddr*)&m_addr, sizeof(m_addr)) == -1) {
-			closesocket(m_sock);
-			m_sock = INVALID_SOCKET;
-			return false;
-		}
-		if (listen(m_sock, 3) == -1) {
-			closesocket(m_sock);
-			m_sock = INVALID_SOCKET;
-			return false;
-		}
-		m_hIOCP = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 4);
-		if (m_hIOCP == NULL) {
-			closesocket(m_sock);
-			m_sock = INVALID_SOCKET;
-			m_hIOCP = INVALID_HANDLE_VALUE;
-			return false;
-		}
-		CreateIoCompletionPort((HANDLE)m_sock, m_hIOCP, (ULONG_PTR)this, 0);  //msock复用已经存在的iocp
-		m_pool.Invoke();
-		m_pool.DispatchWorker(ThreadWorker(this, (FUNCTYPE)&ZhrServer::threadIocp));   //worker--threadIocp函数
-		if (!NewAccept()) return false;
-		//m_pool.DispatchWorker(ThreadWorker(this, (FUNCTYPE)&ZhrServer::threadIocp));
-		//m_pool.DispatchWorker(ThreadWorker(this, (FUNCTYPE)&ZhrServer::threadIocp));
-		return true;
-	}	
+	bool StartServer();
 	bool NewAccept() {
 		PCLIENT pClient(new ZhrClient());  //pclient 是ZhrClient类型的智能指针
 		pClient->SetOverlapped(pClient);
@@ -195,46 +185,7 @@ private:
 	}
 
 
-	int threadIocp() {
-		DWORD transfered = 0;
-		ULONG_PTR CompletionKey = 0;
-		OVERLAPPED* lpOverlapped = NULL;
-		if (GetQueuedCompletionStatus(m_hIOCP, &transfered, &CompletionKey, &lpOverlapped, INFINITE)) {
-			if (transfered > 0 && (CompletionKey != 0)) {
-				ZhrOverlapped* pOverlapped = CONTAINING_RECORD(lpOverlapped, ZhrOverlapped, m_overlapped);
-				switch (pOverlapped->m_operator) {
-				case EAccept:
-				{
-					ACCEPTOVERLAPPED* pOver = (ACCEPTOVERLAPPED*)pOverlapped;
-					m_pool.DispatchWorker(pOver->m_worker);
-				}
-				break;
-				case ERecv:
-				{
-					RECVOVERLAPPED* pOver = (RECVOVERLAPPED*)pOverlapped;
-					m_pool.DispatchWorker(pOver->m_worker);
-				}
-				break;
-				case ESend:
-				{
-					SENDOVERLAPPED* pOver = (SENDOVERLAPPED*)pOverlapped;
-					m_pool.DispatchWorker(pOver->m_worker);
-				}
-				break;
-				case EError:
-				{
-					ERROROVERLAPPED* pOver = (ERROROVERLAPPED*)pOverlapped;
-					m_pool.DispatchWorker(pOver->m_worker);
-				}
-				break;
-				}
-			}
-			else {
-				return -1;
-			}
-		}
-		return 0;
-	}
+	int threadIocp();
 private:
 
 	ZhrThreadPool m_pool;
@@ -243,6 +194,4 @@ private:
 	sockaddr_in m_addr;
 	std::map<SOCKET, std::shared_ptr<ZhrClient>> m_client; //定义就是 shared_ptr<类型>  理解为
 };
-
-
 
